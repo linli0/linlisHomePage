@@ -15,6 +15,9 @@
             <router-link to="/gold" class="btn bg-white text-blue-600 hover:bg-gray-100 font-semibold px-8 py-3">
               查看金价
             </router-link>
+            <router-link to="/ai" class="btn bg-purple-700/50 text-white border border-white/30 hover:bg-purple-700/70 font-semibold px-8 py-3">
+              AI 对话
+            </router-link>
             <router-link to="/articles" class="btn bg-blue-700/50 text-white border border-white/30 hover:bg-blue-700/70 font-semibold px-8 py-3">
               浏览文章
             </router-link>
@@ -77,6 +80,20 @@
             </p>
             <router-link to="/tools" class="text-green-600 dark:text-green-400 font-medium hover:underline">
               使用工具 →
+            </router-link>
+          </div>
+
+          <!-- AI Feature -->
+          <div class="card p-6 hover:shadow-lg transition-shadow">
+            <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-4">
+              <span class="text-2xl">🤖</span>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">AI 对话</h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">
+              与本地 Ollama 模型实时对话，支持多种本地模型。
+            </p>
+            <router-link to="/ai" class="text-purple-600 dark:text-purple-400 font-medium hover:underline">
+              开始对话 →
             </router-link>
           </div>
         </div>

@@ -23,17 +23,17 @@ export const useAuthStore = defineStore('auth', () => {
   const isAdmin = computed(() => user.value?.role === 'ADMIN')
 
   // Actions
-  async function login(username: string, password: string) {
+  async function login(password: string) {
     loading.value = true
     error.value = null
-    
+
     try {
-      const response = await authApi.login({ username, password })
+      const response = await authApi.login({ password })
       const data = response.data.data
-      
+
       token.value = data.token
       localStorage.setItem('token', data.token)
-      
+
       user.value = {
         id: data.id,
         username: data.username,
@@ -42,7 +42,7 @@ export const useAuthStore = defineStore('auth', () => {
         avatar: data.avatar,
         role: data.role
       }
-      
+
       return true
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Login failed'
@@ -52,38 +52,9 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function register(username: string, password: string, email: string, displayName: string) {
-    loading.value = true
-    error.value = null
-    
-    try {
-      const response = await authApi.register({ username, password, email, displayName })
-      const data = response.data.data
-      
-      token.value = data.token
-      localStorage.setItem('token', data.token)
-      
-      user.value = {
-        id: data.id,
-        username: data.username,
-        email: data.email,
-        displayName: data.displayName,
-        avatar: data.avatar,
-        role: data.role
-      }
-      
-      return true
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Registration failed'
-      return false
-    } finally {
-      loading.value = false
-    }
-  }
-
   async function fetchUser() {
     if (!token.value) return
-    
+
     try {
       const response = await authApi.getCurrentUser()
       user.value = response.data.data
@@ -106,7 +77,6 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     isAdmin,
     login,
-    register,
     fetchUser,
     logout
   }

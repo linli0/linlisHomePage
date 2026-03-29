@@ -1,15 +1,7 @@
 import request from '@/utils/request'
 
 export interface LoginRequest {
-  username: string
   password: string
-}
-
-export interface RegisterRequest {
-  username: string
-  password: string
-  email: string
-  displayName: string
 }
 
 export interface AuthResponse {
@@ -26,6 +18,5 @@ export interface AuthResponse {
 
 export const authApi = {
   login: (data: LoginRequest) => request.post('/auth/login', data),
-  register: (data: RegisterRequest) => request.post('/auth/register', data),
   getCurrentUser: () => request.get('/auth/me')
 }
