@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: coffee-homepage-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - JWT_SECRET=${JWT_SECRET:-bXlTdXBlclNlY3JldEtleUZvckpXVFRva2VuR2VuZXJhdGlvbjEyMzQ1Njc4OQ==}
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DB=homepage
+      - MYSQL_USER=${MYSQL_USER:-homepage}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-homepage123}
+    volumes:
+      - ./data:/app/data
+    networks:
+      - coffee-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: coffee-homepage-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    networks:
+      - coffee-network
+    depends_on:
+      - backend
+
+  mysql:
+    image: mysql:8.0
+    container_name: coffee-homepage-mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root123}
+      - MYSQL_DATABASE=homepage
+      - MYSQL_USER=${MYSQL_USER:-homepage}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-homepage123}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - coffee-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql-data:
+
+networks:
+  coffee-network:
+    driver: bridge
