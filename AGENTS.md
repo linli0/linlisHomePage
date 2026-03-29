@@ -51,7 +51,8 @@ coffeeCookie'sHomePage/
 ├── package.json                 # 后端（Express）依赖
 ├── package-lock.json
 ├── node_modules/                # Express 后端依赖
-├── start.bat                    # Windows 启动脚本（Node.js 直接运行）
+├── project.properties           # 站点配置（如 site.password）
+├── start.bat                    # Windows 启动脚本
 ├── start.sh                     # Linux 启动脚本（Docker Compose）
 ├── docker-compose.yml           # Docker 编排（指向 Spring Boot + Nginx + MySQL）
 ├── .env.example                 # 环境变量模板
@@ -65,95 +66,52 @@ coffeeCookie'sHomePage/
 │   ├── nginx.conf               # Docker 部署用的 Nginx 配置
 │   ├── Dockerfile               # 前端 Docker 镜像（Nginx）
 │   ├── index.html
+│   ├── dist/                    # 【构建产物】由 server.js 直接服务
 │   └── src/
 │       ├── main.ts              # 入口：createApp + Pinia + Router
 │       ├── App.vue
 │       ├── assets/main.css
 │       ├── api/                 # API 接口封装（按模块分文件）
-│       │   ├── auth.ts
-│       │   ├── goldPrice.ts
-│       │   ├── tools.ts
-│       │   ├── article.ts
-│       │   └── ai.ts
 │       ├── components/          # 可复用组件
-│       │   ├── NavigationBar.vue
-│       │   ├── FooterBar.vue
-│       │   ├── PriceChart.vue
-│       │   └── AIChat.vue
 │       ├── router/index.ts      # 路由表 + 导航守卫
-│       ├── stores/auth.ts       # Pinia：认证状态（token 存 localStorage）
+│       ├── stores/              # Pinia Store
 │       ├── utils/request.ts     # Axios 实例 + 拦截器
 │       └── views/               # 页面级组件
-│           ├── HomeView.vue
-│           ├── GoldPriceView.vue
-│           ├── ArticlesView.vue
-│           ├── ArticleDetailView.vue
-│           ├── ToolsView.vue
-│           ├── LoginView.vue
-│           ├── RegisterView.vue
-│           └── ProfileView.vue
-│
-├── frontend-dist/               # 【生产部署目录】Express 静态文件服务指向此处
-│   └── (构建后的 HTML/JS/CSS)
 │
 ├── backend/                     # 【备用后端】Spring Boot 完整工程
 │   ├── pom.xml
 │   ├── Dockerfile
-│   └── src/
-│       ├── main/java/com/coffeecookies/homepage/
-│       │   ├── Application.java
-│       │   ├── config/          # SecurityConfig, DataInitializer
-│       │   ├── controller/      # REST API 控制器
-│       │   ├── service/         # 业务逻辑
-│       │   ├── repository/      # JPA Repository
-│       │   ├── entity/          # JPA 实体
-│       │   ├── dto/             # 数据传输对象
-│       │   └── security/        # JWT 工具、过滤器、UserDetails
-│       ├── main/resources/
-│       │   ├── application.yml      # H2 开发配置
-│       │   └── application-prod.yml # 生产配置
-│       └── test/java/           # 测试目录（当前为空）
+│   └── src/main/java/...
 │
 ├── source-projects/             # 原始项目备份
-│   ├── cooffeeCookiesHomePage/
-│   ├── miAi/
-│   └── personal-homepage/
-│
-├── README.md                    # 面向人类用户的项目说明
-├── PROJECT_DOCUMENTATION.md     # 详细技术文档
-├── DEPLOY_GUIDE.md              # 公网部署指南
-├── HISTORY.md                   # 开发历史记录
-└── TASK_STATUS.md               # 任务进度记录
+├── design/                      # 需求文档
+└── README.md
 ```
 
 ---
 
 ## 构建与运行命令
 
-### 方式一：Node.js 直接运行（当前实际使用）
+### Express 后端 + Vue 前端（推荐）
 
 ```bash
-# 1. 安装后端依赖
+# 安装后端依赖
 cd "D:\AI\coffeeCookie'sHomePage"
 npm install
 
-# 2. 安装前端依赖并构建
+# 安装前端依赖
 cd frontend
 npm install
+
+# 构建前端
 npm run build
 cd ..
 
-# 3. 将构建产物复制到部署目录
-# Windows
-xcopy /E /I /Y frontend\dist frontend-dist
-# PowerShell
-Copy-Item -Path "frontend\dist\*" -Destination "frontend-dist" -Recurse -Force
-
-# 4. 启动服务
+# 启动服务
 node server.js
 ```
 
-或使用一键脚本（Windows）：
+或使用一键脚本：
 ```bash
 start.bat
 ```
@@ -161,11 +119,8 @@ start.bat
 服务启动后：
 - 本地访问：http://localhost:8080
 - API 地址：http://localhost:8080/api
-- 开发前端（如需独立运行）：http://localhost:3000
 
-### 方式二：开发模式（热更新）
-
-需要同时启动两个进程：
+### 开发模式（热更新）
 
 ```bash
 # 终端 1：Express 后端
@@ -177,43 +132,124 @@ cd "D:\AI\coffeeCookie'sHomePage\frontend"
 npm run dev        # Vite 开发服务器，端口 3000，代理 /api 到 8080
 ```
 
-### 方式三：Docker Compose（指向 Spring Boot 后端）
+### Spring Boot 后端（备用）
 
 ```bash
-# Linux / macOS / WSL
-./start.sh
-
-# 或手动
-docker-compose up -d
+cd backend
+mvn clean package -DskipTests
+java -jar target/homepage-backend-1.0.0.jar
 ```
-
-此方式会启动三个容器：
-- `coffee-homepage-backend`：Spring Boot（端口 8080）
-- `coffee-homepage-frontend`：Nginx（端口 80）
-- `coffee-homepage-mysql`：MySQL 8（端口 3306）
 
 ---
 
-## 代码组织规范
+## 测试命令
 
-### 前端（Vue 3）
-- **API 层**：所有 HTTP 请求封装在 `frontend/src/api/` 下，按业务模块分文件。使用 `frontend/src/utils/request.ts` 中的 Axios 实例。
-- **状态管理**：使用 Pinia + Composition API（`stores/auth.ts` 为示例）。Token 持久化到 `localStorage`，键名为 `token`。
-- **路由守卫**：`router/index.ts` 中实现了 `requiresAuth` 和 `guest` 元字段的导航守卫。
-- **路径别名**：`@/` 映射到 `src/`（在 `vite.config.ts` 和 `tsconfig.json` 中同时配置）。
-- **样式**：Tailwind CSS 为主，自定义了 `gold-*` 和 `primary-*` 颜色。支持通过 `dark` class 切换暗色模式。
+### 当前状态
+- **后端测试**：项目无单元测试，建议引入 Jest 或 Mocha
+- **前端测试**：项目无测试框架，建议引入 Vitest
+- **Spring Boot 测试**：依赖已配置（`spring-boot-starter-test`），但无测试文件
 
-### 后端（Express - 当前活跃）
-- `server.js` 是单体文件，所有路由、中间件、模拟数据都在其中。
-- 金价数据为内存模拟，每分钟通过 `setInterval` 自动更新。
-- AI 功能通过 `fetch` 代理到本地 Ollama 服务（`/api/ai/*`）。
-- 静态文件服务指向 `frontend-dist/` 目录，所有未知路由回退到 `index.html`（SPA 支持）。
+### 建议的测试命令（未来添加后）
+
+```bash
+# 后端
+npm test                    # 运行所有测试
+npm test -- --watch        # 监听模式
+npx jest --testNamePattern="login"  # 运行单个测试
+
+# 前端
+cd frontend
+npm run test               # 运行 Vitest
+npm run test:ui           # UI 模式
+npx vitest run login      # 运行单个测试文件
+
+# Spring Boot
+cd backend
+mvn test                              # 运行所有测试
+mvn test -Dtest=AuthControllerTest    # 运行单个测试类
+mvn test -Dtest=AuthControllerTest#login  # 运行单个测试方法
+```
+
+---
+
+## 代码风格指南
+
+### 前端（Vue 3 + TypeScript）
+
+#### 导入顺序
+```typescript
+// 1. Vue/框架内置
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+// 2. 第三方库
+import { useAuthStore } from '@/stores/auth'
+import { goldPriceApi } from '@/api/goldPrice'
+
+// 3. 本地组件/工具
+import PriceChart from '@/components/PriceChart.vue'
+import { formatPrice } from '@/utils/format'
+
+// 4. 类型
+import type { GoldPrice } from '@/api/goldPrice'
+```
+
+#### 组件规范
+- 使用 `<script setup lang="ts">` 语法
+- Props 使用 `withDefaults` 定义默认值
+- 事件使用 `emit` 显式声明
+- 避免使用 `any`，使用具体类型或 `unknown`
+
+#### 命名约定
+- 组件文件：`PascalCase`（如 `AIChat.vue`）
+- 组件变量：`camelCase`（如 `aiChatRef`）
+- 常量：`UPPER_SNAKE_CASE`（如 `API_BASE_URL`）
+- 接口/类型：`PascalCase`（如 `interface User`）
+- CSS 类：`kebab-case`（如 `.btn-primary`）
+
+#### 模板规范
+- 使用 `v-if`/`v-else` 处理条件渲染，避免 `v-show`
+- 使用 `v-for` 时必须添加 `:key`
+- 事件处理使用箭头函数或方法引用，避免内联过多逻辑
+
+### 后端（Express）
+
+#### 代码组织
+- `server.js` 是单体文件，包含所有路由、中间件、数据
+- 新功能使用函数模块化，添加在文件适当位置
+- 错误处理使用统一的 `error()` 响应格式
+
+#### 命名约定
+- 路由处理函数：`async function handleXxx(req, res)`
+- 中间件：`function authMiddleware(req, res, next)`
+- 变量：`camelCase`
+- 常量：`UPPER_SNAKE_CASE`
+
+#### 错误处理模式
+```javascript
+// 正确
+app.get('/api/data', async (req, res) => {
+  try {
+    const data = await fetchData();
+    res.json(success(data));
+  } catch (err) {
+    console.error('Error:', err.message);
+    res.status(500).json(error('Failed to fetch data'));
+  }
+});
+```
 
 ### 后端（Spring Boot - 备用）
-- 标准分层架构：Controller → Service → Repository → Entity。
-- 使用 Lombok（`@RequiredArgsConstructor`、`@Slf4j` 等）。
-- 统一返回格式：`Result<T>` 包装成功/失败响应。
-- JWT 过滤器链：`AuthTokenFilter` → `UsernamePasswordAuthenticationFilter`。
+
+#### 分层架构
+- Controller → Service → Repository → Entity
+- 使用 Lombok 减少样板代码
+- 统一返回 `Result<T>` 格式
+
+#### 命名约定
+- 类：`PascalCase`（如 `UserController`）
+- 方法：`camelCase`（如 `getUserById`）
+- 包：`小写单数`（如 `com.coffeecookies.homepage.controller`）
 
 ---
 
@@ -222,8 +258,7 @@ docker-compose up -d
 ### 认证相关
 | 方法 | 端点 | 说明 |
 |------|------|------|
-| POST | `/api/auth/login` | 用户登录 |
-| POST | `/api/auth/register` | 用户注册（Spring Boot 版本）|
+| POST | `/api/auth/login` | 登录（仅需密码）|
 | GET | `/api/auth/me` | 获取当前用户信息 |
 
 ### 金价相关
@@ -233,102 +268,43 @@ docker-compose up -d
 | GET | `/api/gold-price/history?currency=USD&days=7` | 获取历史价格 |
 | GET | `/api/gold-price/currencies` | 获取支持的货币列表 |
 
+### AI 相关（Ollama）
+| 方法 | 端点 | 说明 |
+|------|------|------|
+| GET | `/api/ai/models` | 获取可用模型列表 |
+| GET | `/api/ai/status` | 检查 Ollama 服务状态 |
+| POST | `/api/ai/chat` | 与 AI 对话（流式响应）|
+
 ### 工具相关
 | 方法 | 端点 | 说明 |
 |------|------|------|
 | POST | `/api/tools/json/format` | JSON 格式化 |
 | POST | `/api/tools/base64/encode` | Base64 编码 |
-| POST | `/api/tools/base64/decode` | Base64 解码 |
-| POST | `/api/tools/url/encode` | URL 编码 |
-| POST | `/api/tools/url/decode` | URL 解码 |
 | POST | `/api/tools/hash/md5` | MD5 哈希 |
-| POST | `/api/tools/hash/sha256` | SHA256 哈希 |
-
-### AI 相关（Ollama 代理）
-| 方法 | 端点 | 说明 |
-|------|------|------|
-| GET | `/api/ai/models` | 获取可用模型列表 |
-| GET | `/api/ai/status` | 检查 Ollama 服务状态 |
-| POST | `/api/ai/chat` | 与 AI 对话（支持流式响应）|
-
-### 文章相关（Spring Boot 版本）
-| 方法 | 端点 | 说明 |
-|------|------|------|
-| GET | `/api/articles/public/list` | 获取文章列表 |
-| GET | `/api/articles/public/{id}` | 获取文章详情 |
-| GET | `/api/articles/public/recent` | 获取最新文章 |
-| GET | `/api/articles/public/popular` | 获取热门文章 |
-
----
-
-## 测试策略
-
-**当前状态：项目中没有实际编写的测试用例。**
-
-- `backend/src/test/java/` 目录结构存在，但无测试文件。
-- 前端未配置 Vitest / Jest / Cypress 等测试框架。
-- 若需添加测试，建议：
-  - 后端：使用 `spring-boot-starter-test`（已引入依赖）编写单元测试和集成测试。
-  - 前端：引入 Vitest + Vue Test Utils 进行组件和 Store 测试。
 
 ---
 
 ## 安全注意事项
 
-1. **默认硬编码凭据**
-   - 管理员：`admin` / `admin123`
-   - 普通用户：`user` / `user123`
-   - 生产环境必须修改或禁用默认账号。
-
-2. **JWT 密钥**
-   - Express 默认值：`coffee-cookies-secret-key-2024`
-   - Spring Boot 默认值：`bXlTdXBlclNlY3JldEtleUZvckpXVFRva2VuR2VuZXJhdGlvbjEyMzQ1Njc4OQ==`
-   - 生产环境务必通过环境变量 `JWT_SECRET` 覆盖。
-
-3. **CORS 配置**
-   - Express 中使用了 `app.use(cors())`（允许所有来源）。
-   - Spring Boot 中 `@CrossOrigin(origins = "*")` 广泛存在。
-   - 生产环境应限制为实际域名。
-
-4. **H2 控制台**
-   - Spring Boot 的 `application.yml` 中启用了 H2 Console（`/h2-console`）且 `web-allow-others: true`。
-   - 生产环境（`application-prod.yml`）应禁用此功能。
-
-5. **Ollama 代理**
-   - `server.js` 将客户端请求直接代理到 `localhost:11434`。
-   - 确保 Ollama 服务仅在本地监听，避免未授权访问。
-
----
-
-## 环境变量
-
-| 变量 | 默认值 | 说明 |
-|------|--------|------|
-| `PORT` | `8080` | Express 服务端口 |
-| `JWT_SECRET` | 见上文 | JWT 签名密钥 |
-| `OLLAMA_URL` | `http://localhost:11434` | Ollama 服务地址 |
-| `NODE_ENV` | `development` | Node.js 运行环境 |
-
-Docker Compose 额外使用：
-- `MYSQL_ROOT_PASSWORD`、`MYSQL_USER`、`MYSQL_PASSWORD`、`MYSQL_DB`
-- `SPRING_PROFILES_ACTIVE=prod`
+1. **登录凭据**：密码配置在 `project.properties` 的 `site.password` 字段，默认值 `admin`
+2. **JWT 密钥**：Express 默认值 `coffee-cookies-secret-key-2024`，通过环境变量 `JWT_SECRET` 覆盖
+3. **CORS**：Express 使用 `cors()` 允许所有来源，生产环境应限制域名
+4. **Ollama 代理**：`server.js` 直接代理到 `localhost:11434`，确保仅本地可访问
 
 ---
 
 ## 开发工作流提示
 
-1. **修改 Express 后端**：编辑 `server.js` 后必须重启服务（`node server.js` 或 `npm run dev`）。
-2. **修改 Vue 前端**：
-   - 开发时运行 `npm run dev`（热更新）。
-   - 部署前必须执行 `npm run build` 并将 `frontend/dist/` 内容同步到 `frontend-dist/`。
-3. **修改 Spring Boot 后端**：编辑 `backend/` 下文件后，需重新编译或重启 Spring Boot 应用。当前默认运行方式不会自动加载这些变更。
-4. **公网访问**：当前使用内网穿透工具（Tunnelmole / LocalTunnel）。每次启动域名可能变化，相关信息记录在 `DEPLOY_GUIDE.md` 中。
+1. **修改 Express 后端**：编辑 `server.js` 后必须重启服务
+2. **修改 Vue 前端**：开发时运行 `npm run dev`，部署前执行 `npm run build`
+3. **构建产物**：Express 直接服务 `frontend/dist/`，无需额外复制
+4. **提交前检查**：确保前端构建成功，无 TypeScript 错误
 
 ---
 
 ## 常见陷阱
 
-- **不要假设 Spring Boot 是当前运行后端**。默认启动 `server.js` 时，所有 `/api/*` 请求由 Express 处理。
-- **前端构建产物必须同步到 `frontend-dist/`**。Express 不直接读取 `frontend/dist/`。
-- **Docker Compose 与当前活跃架构不一致**。`docker-compose.yml` 构建的是 Spring Boot + Nginx 组合，与 `server.js` 无关。
-- **没有真实金价 API**。金价数据是内存模拟的随机数，接入真实 API 在待办列表中。
+- **不要假设 Spring Boot 是当前运行后端**
+- **前端构建产物在 `frontend/dist/`，Express 直接读取此目录**
+- **没有真实金价 API**，数据为内存模拟
+- **登录只需密码**，注册功能已禁用
