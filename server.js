@@ -435,11 +435,11 @@ app.get('/api/ai/status', async (req, res) => {
 });
 
 // 静态文件服务
-app.use(express.static(path.join(__dirname, 'frontend-dist')));
+app.use(express.static(path.join(__dirname, 'frontend', 'dist')));
 
 // 前端路由处理
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend-dist', 'index.html'));
+  res.sendFile(path.join(__dirname, 'frontend', 'dist', 'index.html'));
 });
 
 // 定时更新金价（每分钟）
