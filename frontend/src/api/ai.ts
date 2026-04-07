@@ -33,13 +33,19 @@ export const aiApi = {
   // 与 AI 对话（流式响应，使用 fetch 直接处理）
   chatStream: async (data: AIChatRequest, onMessage: (chunk: string) => void, onDone?: () => void, onError?: (error: Error) => void) => {
     const baseURL = import.meta.env.VITE_API_BASE_URL || ''
+    const token = localStorage.getItem('token')
     
     try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      }
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
       const response = await fetch(`${baseURL}/api/ai/chat`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           ...data,
           stream: true
@@ -52,6 +58,8 @@ export const aiApi = {
       
       const reader = response.body?.getReader()
       const decoder = new TextDecoder()
+      let buffer = ''
+      let doneCalled = false
       
       if (!reader) {
         throw new Error('No response body')
@@ -61,26 +69,41 @@ export const aiApi = {
         const { done, value } = await reader.read()
         if (done) break
         
-        const chunk = decoder.decode(value, { stream: true })
-        // Ollama 的流式响应是 NDJSON 格式，每行一个 JSON 对象
-        const lines = chunk.split('\n').filter(line => line.trim())
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
         
         for (const line of lines) {
+          if (!line.trim()) continue
           try {
             const parsed = JSON.parse(line)
             if (parsed.response) {
               onMessage(parsed.response)
             }
-            if (parsed.done) {
+            if (parsed.done && !doneCalled) {
+              doneCalled = true
               onDone?.()
             }
           } catch (e) {
-            // 忽略解析错误
+            // skip incomplete JSON
           }
         }
       }
+
+      if (buffer.trim()) {
+        try {
+          const parsed = JSON.parse(buffer)
+          if (parsed.response) onMessage(parsed.response)
+          if (parsed.done && !doneCalled) {
+            doneCalled = true
+            onDone?.()
+          }
+        } catch (e) {
+          // skip
+        }
+      }
       
-      onDone?.()
+      if (!doneCalled) onDone?.()
     } catch (error) {
       onError?.(error as Error)
     }

@@ -47,8 +47,11 @@ export interface PageResult<T> {
 }
 
 export const articleApi = {
-  getPublishedArticles: (page: number = 0, size: number = 10) => 
-    request.get(`/articles/public/list?page=${page}&size=${size}`),
+  getPublishedArticles: (page: number = 0, size: number = 10, category?: number) => {
+    const params = new URLSearchParams({ page: String(page), size: String(size) })
+    if (category) params.append('category', String(category))
+    return request.get(`/articles/public/list?${params.toString()}`)
+  },
   
   getArticleById: (id: number) => 
     request.get(`/articles/public/${id}`),

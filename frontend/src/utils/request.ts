@@ -9,7 +9,6 @@ const request = axios.create({
   }
 })
 
-// Request interceptor
 request.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
@@ -23,7 +22,6 @@ request.interceptors.request.use(
   }
 )
 
-// Response interceptor
 request.interceptors.response.use(
   (response) => {
     return response
@@ -32,7 +30,9 @@ request.interceptors.response.use(
     if (error.response?.status === 401) {
       const authStore = useAuthStore()
       authStore.logout()
-      window.location.href = '/login'
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(error)
   }

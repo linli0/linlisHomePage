@@ -9,6 +9,7 @@ export interface User {
   displayName: string
   avatar: string
   role: string
+  createdAt?: string
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -40,7 +41,8 @@ export const useAuthStore = defineStore('auth', () => {
         email: data.email,
         displayName: data.displayName,
         avatar: data.avatar,
-        role: data.role
+        role: data.role,
+        createdAt: data.createdAt
       }
 
       return true

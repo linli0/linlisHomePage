@@ -1,14 +1,19 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="mb-6">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">AI 对话</h1>
-        <p class="mt-2 text-gray-600 dark:text-gray-400">
-          与本地 Ollama 模型对话
+  <div class="min-h-screen bg-surface-50 dark:bg-surface-950 py-8">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="mb-10">
+        <span class="inline-block px-4 py-1.5 rounded-full bg-accent-100 dark:bg-accent-900/30 text-accent-600 dark:text-accent-400 text-sm font-medium mb-4">
+          智能助手
+        </span>
+        <h1 class="text-4xl md:text-5xl font-bold text-surface-900 dark:text-white mb-4">
+          AI <span class="gradient-text">智能对话</span>
+        </h1>
+        <p class="text-lg text-surface-600 dark:text-surface-400 max-w-2xl">
+          基于本地 Ollama 模型的智能对话助手，支持多种大语言模型
         </p>
       </div>
       
-      <div class="card p-6">
+      <div class="card-hover p-8">
         <AIChat />
       </div>
     </div>

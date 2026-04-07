@@ -18,5 +18,7 @@ export interface AuthResponse {
 
 export const authApi = {
   login: (data: LoginRequest) => request.post('/auth/login', data),
-  getCurrentUser: () => request.get('/auth/me')
+  getCurrentUser: () => request.get('/auth/me'),
+  updateProfile: (data: { displayName?: string; email?: string }) => request.put('/auth/profile', data),
+  changePassword: (data: { currentPassword: string; newPassword: string }) => request.put('/auth/password', data)
 }
