@@ -32,7 +32,7 @@ export const toolsApi = {
   
   // QR Code
   generateQRCode: (content: string, width: number = 200, height: number = 200) => 
-    request.post('/tools/qrcode/generate', { content, width, height }, { responseType: 'blob' }),
+    request.post('/tools/qrcode/generate', { text: content, width, height }, { responseType: 'blob' }),
   
   // Health Check
   healthCheck: () => request.get('/tools/health')

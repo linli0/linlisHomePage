@@ -335,30 +335,31 @@ app.post('/api/tools/url/decode', (req, res) => {
 app.post('/api/tools/hash/md5', (req, res) => {
   const crypto = require('crypto');
   const { text } = req.body;
+  if (!text) return res.status(400).json(error('Text is required'));
   const hash = crypto.createHash('md5').update(text).digest('hex');
   res.json(success(hash));
 });
 
-// 工具 API - SHA1
 app.post('/api/tools/hash/sha1', (req, res) => {
   const crypto = require('crypto');
   const { text } = req.body;
+  if (!text) return res.status(400).json(error('Text is required'));
   const hash = crypto.createHash('sha1').update(text).digest('hex');
   res.json(success(hash));
 });
 
-// 工具 API - SHA256
 app.post('/api/tools/hash/sha256', (req, res) => {
   const crypto = require('crypto');
   const { text } = req.body;
+  if (!text) return res.status(400).json(error('Text is required'));
   const hash = crypto.createHash('sha256').update(text).digest('hex');
   res.json(success(hash));
 });
 
-// 工具 API - SHA512
 app.post('/api/tools/hash/sha512', (req, res) => {
   const crypto = require('crypto');
   const { text } = req.body;
+  if (!text) return res.status(400).json(error('Text is required'));
   const hash = crypto.createHash('sha512').update(text).digest('hex');
   res.json(success(hash));
 });
@@ -402,6 +403,10 @@ app.post('/api/tools/qrcode/generate', async (req, res) => {
   } catch (err) {
     res.status(500).json(error('Failed to generate QR code'));
   }
+});
+
+app.get('/api/tools/health', (req, res) => {
+  res.json(success({ status: 'ok', timestamp: new Date().toISOString() }));
 });
 
 // ========== 文章/分类/标签 API 路由 ==========
