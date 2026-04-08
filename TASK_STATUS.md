@@ -20,7 +20,7 @@
 
 ## 技术栈
 - 后端: Spring Boot + JWT + JPA + H2/MySQL
-- 前端: Vue 3 + Vite + Pinia + Chart.js
+- 前端: Vue 3 + Vite + Pinia + Chart.js 
 - 部署: Docker + Docker Compose
 
 ## 重要提醒

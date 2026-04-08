@@ -38,7 +38,17 @@ backend/.mvn/
 backend/mvnw
 backend/mvnw.cmd
 
+# Config (contains credentials and tunnel configs)
+.config/
+
 # Testing
 coverage/
 .nyc_output/
 frontend-dist/
+
+# Cloudflared binary
+cloudflared
+cloudflared.exe
+
+# Trae
+.trae/

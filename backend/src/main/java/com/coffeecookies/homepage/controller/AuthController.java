@@ -24,22 +24,21 @@ public class AuthController {
             return ResponseEntity.ok(Result.success(authService.login(request)));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Result.error("Invalid credentials", HttpStatus.UNAUTHORIZED.value()));
+                    .body(Result.error(HttpStatus.UNAUTHORIZED.value(), "Invalid credentials"));
         }
     }
 
     @PostMapping("/register")
     public ResponseEntity<Result<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
-        // Registration is disabled - matches Express behavior (returns 403)
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(Result.error("Registration is disabled", HttpStatus.FORBIDDEN.value()));
+                .body(Result.error(HttpStatus.FORBIDDEN.value(), "Registration is disabled"));
     }
 
     @GetMapping("/me")
     public ResponseEntity<Result<UserDTO>> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Result.error("Not authenticated", HttpStatus.UNAUTHORIZED.value()));
+                    .body(Result.error(HttpStatus.UNAUTHORIZED.value(), "Not authenticated"));
         }
         return ResponseEntity.ok(Result.success(authService.getCurrentUser(userDetails.getUsername())));
     }
@@ -50,14 +49,14 @@ public class AuthController {
             @Valid @RequestBody ProfileUpdateRequest request) {
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Result.error("Not authenticated", HttpStatus.UNAUTHORIZED.value()));
+                    .body(Result.error(HttpStatus.UNAUTHORIZED.value(), "Not authenticated"));
         }
         try {
             UserDTO updatedUser = authService.updateProfile(userDetails.getUsername(), request);
             return ResponseEntity.ok(Result.success(updatedUser));
         } catch (Exception e) {
             return ResponseEntity.badRequest()
-                    .body(Result.error(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+                    .body(Result.error(HttpStatus.BAD_REQUEST.value(), e.getMessage()));
         }
     }
     
@@ -67,14 +66,14 @@ public class AuthController {
             @Valid @RequestBody PasswordChangeRequest request) {
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Result.error("Not authenticated", HttpStatus.UNAUTHORIZED.value()));
+                    .body(Result.error(HttpStatus.UNAUTHORIZED.value(), "Not authenticated"));
         }
         try {
             authService.changePassword(userDetails.getUsername(), request);
             return ResponseEntity.ok(Result.success("Password changed successfully"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Result.error(e.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+                    .body(Result.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage()));
         }
     }
 }

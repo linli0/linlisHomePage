@@ -95,7 +95,13 @@ public class AIService {
                     .bodyValue(requestBody)
                     .retrieve()
                     .bodyToFlux(byte[].class)
-                    .doOnNext(outputStream::write)
+                    .doOnNext(bytes -> {
+                        try {
+                            outputStream.write(bytes);
+                        } catch (java.io.IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
                     .doOnError(error -> {
                         log.error("Streaming error: {}", error.getMessage(), error);
                         throw new RuntimeException("Streaming error: " + error.getMessage());

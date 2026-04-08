@@ -63,8 +63,10 @@ public class SecurityConfig {
                             .requestMatchers("/api/categories/**").permitAll()
                             .requestMatchers("/api/tags/**").permitAll()
                             .requestMatchers("/api/tools/**").permitAll()
+                            .requestMatchers("/api/ai/status").permitAll()
                             .requestMatchers("/h2-console/**").permitAll()
                             .requestMatchers("/actuator/health").permitAll()
+                            .requestMatchers("GET", "/", "/index.html", "/assets/**", "/**/*.js", "/**/*.css", "/**/*.ico", "/**/*.png", "/**/*.svg", "/**/*.woff2", "/**/*.woff", "/**/*.map").permitAll()
                             .anyRequest().authenticated()
                 );
 
