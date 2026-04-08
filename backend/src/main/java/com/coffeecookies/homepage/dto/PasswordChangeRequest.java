@@ -8,10 +8,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginRequest {
+public class PasswordChangeRequest {
     
-    private String username; // Optional for password-only mode
+    @NotBlank(message = "Current password is required")
+    private String currentPassword;
     
-    @NotBlank(message = "Password is required")
-    private String password;
+    @NotBlank(message = "New password is required")
+    private String newPassword;
 }

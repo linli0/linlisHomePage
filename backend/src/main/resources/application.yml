@@ -31,22 +31,39 @@ spring:
       write-dates-as-timestamps: false
     time-zone: GMT+8
 
+  # WebClient Configuration
+  codec:
+    max-in-memory-size: 10MB
+
 # Server Configuration
 server:
   port: 8080
   servlet:
     context-path: /
+  # Increase timeout for AI streaming responses
+  tomcat:
+    connection-timeout: 300000 # 5 minutes
+    keep-alive-timeout: 300000
 
 # JWT Configuration
 jwt:
   secret: ${JWT_SECRET:bXlTdXBlclNlY3JldEtleUZvckpXVFRva2VuR2VuZXJhdGlvbjEyMzQ1Njc4OQ==}
   expiration: 86400000 # 24 hours
 
+# Site Configuration
+site:
+  password: ${SITE_PASSWORD:admin123}
+
+# Ollama Configuration
+ollama:
+  base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+
 # Logging
 logging:
   level:
     com.coffeecookies.homepage: INFO
     org.springframework.security: WARN
+    org.springframework.web.reactive.function.client: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
