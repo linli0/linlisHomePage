@@ -1,9 +1,9 @@
 <template>
-  <nav 
+  <nav
     :class="[
       'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-      isScrolled 
-        ? 'bg-white/90 dark:bg-surface-900/90 backdrop-blur-xl shadow-soft' 
+      isScrolled || !onHeroPage
+        ? 'bg-white/95 dark:bg-surface-900/95 backdrop-blur-xl shadow-soft'
         : 'bg-transparent'
     ]"
   >
@@ -20,7 +20,7 @@
             <div class="flex flex-col">
               <span :class="[
                 'font-bold text-lg transition-colors',
-                isScrolled ? 'text-surface-900 dark:text-white' : 'text-white'
+                (isScrolled || !onHeroPage) ? 'text-surface-900 dark:text-white' : 'text-white'
               ]">
                 CoffeeCookies
               </span>
@@ -33,8 +33,8 @@
               :class="[
                 'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200',
                 $route.path === '/' 
-                  ? (isScrolled ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' : 'bg-white/20 text-white')
-                  : (isScrolled ? 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800' : 'text-white/80 hover:text-white hover:bg-white/10')
+                  ? ((isScrolled || !onHeroPage) ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' : 'bg-white/20 text-white')
+                  : ((isScrolled || !onHeroPage) ? 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800' : 'text-white/80 hover:text-white hover:bg-white/10')
               ]"
             >
               首页
@@ -44,31 +44,31 @@
               :class="[
                 'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-1.5',
                 $route.path === '/gold' 
-                  ? (isScrolled ? 'bg-gold-100 dark:bg-gold-900/30 text-gold-600 dark:text-gold-400' : 'bg-white/20 text-white')
-                  : (isScrolled ? 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800' : 'text-white/80 hover:text-white hover:bg-white/10')
+                  ? ((isScrolled || !onHeroPage) ? 'bg-gold-100 dark:bg-gold-900/30 text-gold-600 dark:text-gold-400' : 'bg-white/20 text-white')
+                  : ((isScrolled || !onHeroPage) ? 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800' : 'text-white/80 hover:text-white hover:bg-white/10')
               ]"
             >
               <span>💰</span>
               <span>金价</span>
             </router-link>
-            <router-link 
-              to="/articles" 
+            <router-link
+              to="/articles"
               :class="[
                 'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200',
-                $route.path.startsWith('/article') 
-                  ? (isScrolled ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' : 'bg-white/20 text-white')
-                  : (isScrolled ? 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800' : 'text-white/80 hover:text-white hover:bg-white/10')
+                $route.path.startsWith('/article')
+                  ? (isScrolled || !onHeroPage ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' : 'bg-white/20 text-white')
+                  : (isScrolled || !onHeroPage ? 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800' : 'text-white/80 hover:text-white hover:bg-white/10')
               ]"
             >
-              文章
+              Wiki
             </router-link>
             <router-link 
               to="/tools" 
               :class="[
                 'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200',
                 $route.path === '/tools' 
-                  ? (isScrolled ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' : 'bg-white/20 text-white')
-                  : (isScrolled ? 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800' : 'text-white/80 hover:text-white hover:bg-white/10')
+                  ? ((isScrolled || !onHeroPage) ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' : 'bg-white/20 text-white')
+                  : ((isScrolled || !onHeroPage) ? 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800' : 'text-white/80 hover:text-white hover:bg-white/10')
               ]"
             >
               工具箱
@@ -78,8 +78,8 @@
               :class="[
                 'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-1.5',
                 $route.path === '/ai' 
-                  ? (isScrolled ? 'bg-accent-100 dark:bg-accent-900/30 text-accent-600 dark:text-accent-400' : 'bg-white/20 text-white')
-                  : (isScrolled ? 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800' : 'text-white/80 hover:text-white hover:bg-white/10')
+                  ? ((isScrolled || !onHeroPage) ? 'bg-accent-100 dark:bg-accent-900/30 text-accent-600 dark:text-accent-400' : 'bg-white/20 text-white')
+                  : ((isScrolled || !onHeroPage) ? 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800' : 'text-white/80 hover:text-white hover:bg-white/10')
               ]"
             >
               <span>🤖</span>
@@ -94,7 +94,7 @@
               to="/login" 
               :class="[
                 'px-5 py-2 rounded-xl font-medium text-sm transition-all duration-200',
-                isScrolled 
+                (isScrolled || !onHeroPage)
                   ? 'bg-primary-500 text-white hover:bg-primary-600 shadow-soft hover:shadow-soft-lg'
                   : 'bg-white text-surface-900 hover:bg-surface-100'
               ]"
@@ -120,10 +120,10 @@
                   </div>
                   <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-surface-900"></div>
                 </div>
-                <span :class="['hidden sm:block text-sm font-medium', isScrolled ? 'text-surface-700 dark:text-surface-200' : 'text-white']">
+                <span :class="['hidden sm:block text-sm font-medium', (isScrolled || !onHeroPage) ? 'text-surface-700 dark:text-surface-200' : 'text-white']">
                   {{ authStore.user?.displayName || authStore.user?.username }}
                 </span>
-                <svg :class="['w-4 h-4 transition-transform', showUserMenu ? 'rotate-180' : '', isScrolled ? 'text-surface-500' : 'text-white/60']" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg :class="['w-4 h-4 transition-transform', showUserMenu ? 'rotate-180' : '', (isScrolled || !onHeroPage) ? 'text-surface-500' : 'text-white/60']" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
@@ -177,7 +177,7 @@
             @click="showMobileMenu = !showMobileMenu"
             :class="[
               'md:hidden p-2 rounded-xl transition-colors',
-              isScrolled 
+              (isScrolled || !onHeroPage)
                 ? 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800' 
                 : 'text-white hover:bg-white/10'
             ]"
@@ -225,11 +225,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const showMobileMenu = ref(false)
@@ -237,10 +238,13 @@ const showUserMenu = ref(false)
 const userMenuRef = ref<HTMLElement>()
 const isScrolled = ref(false)
 
+// 判断是否在首页（仅首页使用透明背景）
+const onHeroPage = computed(() => route.path === '/')
+
 const menuItems = [
   { name: '首页', path: '/' },
   { name: '金价', path: '/gold', icon: '💰' },
-  { name: '文章', path: '/articles' },
+  { name: 'Wiki', path: '/articles' },
   { name: '工具箱', path: '/tools' },
   { name: 'AI', path: '/ai', icon: '🤖' }
 ]

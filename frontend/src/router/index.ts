@@ -52,9 +52,20 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
 
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+  // 登录页面允许访问
+  if (to.path === '/login') {
+    next()
+    return
+  }
+
+  // 未登录则跳转到登录页（全局认证）
+  if (!authStore.isAuthenticated) {
     next({ path: '/login', query: { redirect: to.fullPath } })
-  } else if (to.meta.guest && authStore.isAuthenticated) {
+    return
+  }
+
+  // 已登录但访问登录页，跳转到首页
+  if (to.meta.guest && authStore.isAuthenticated) {
     next('/')
   } else {
     next()

@@ -61,7 +61,7 @@
             >
               <span class="flex items-center justify-center gap-2">
                 <span class="text-2xl">📝</span>
-                浏览技术文章
+                浏览Wiki
               </span>
             </router-link>
           </div>
@@ -127,13 +127,13 @@
               </div>
             </div>
             <h3 class="text-xl font-bold text-surface-900 dark:text-white mb-3 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-              技术文章
+              Wiki
             </h3>
             <p class="text-surface-600 dark:text-surface-400 text-sm leading-relaxed">
-              分享技术心得、投资理念，支持分类和标签管理
+              技术文档、知识库与教程，支持分类和标签管理
             </p>
             <div class="mt-4 flex items-center justify-center text-primary-600 dark:text-primary-400 font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity">
-              <span>浏览文章</span>
+              <span>浏览Wiki</span>
               <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
@@ -283,10 +283,10 @@
             最新动态
           </span>
           <h2 class="section-title">
-            技术<span class="gradient-text">文章</span>精选
+            Wiki<span class="gradient-text">精选</span>
           </h2>
           <p class="section-subtitle">
-            分享技术心得与投资理念，记录成长与思考
+            技术文档与知识库，记录与分享
           </p>
         </div>
         
@@ -364,7 +364,7 @@
         
         <div v-if="articles.length > 0" class="text-center mt-12">
           <router-link to="/articles" class="btn-primary inline-flex items-center gap-2">
-            <span>查看全部文章</span>
+            <span>查看全部Wiki</span>
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>

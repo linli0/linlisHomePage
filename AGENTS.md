@@ -136,6 +136,77 @@ cd backend && mvn clean package -DskipTests && java -jar target/*.jar
 
 ---
 
+## QUICK DEPLOY 🚀
+
+### 一键部署（推荐）
+
+使用 AI 助手执行：
+
+```bash
+# 直接告诉 AI 助手
+"load-service"
+```
+
+AI 助手将自动：
+1. ✅ 检查环境（Java、Maven、Node.js）
+2. ✅ 构建前端
+3. ✅ 启动 Spring Boot 后端
+4. ✅ 创建 Cloudflare Tunnel 穿透
+5. ✅ 输出公网访问地址
+
+### 手动部署
+
+```bash
+# 1. 构建前端
+cd frontend
+npm install
+npm run build
+cd ..
+
+# 2. 启动后端
+cd backend
+nohup mvn spring-boot:run > ../backend.log 2>&1 &
+cd ..
+
+# 3. 启动 Tunnel（Windows）
+CLOUDFLARED="/c/Users/Windows11/AppData/Local/Microsoft/WinGet/Packages/Cloudflare.cloudflared_Microsoft.Winget.Source_8wekyb3d8bbwe/cloudflared.exe"
+nohup $CLOUDFLARED tunnel --url http://localhost:8080 > tunnel.log 2>&1 &
+
+# 4. 查看公网 URL
+cat tunnel.log | grep "trycloudflare.com"
+```
+
+### 访问信息
+
+**本地访问**：
+- 前端：http://localhost:8080
+- 后端 API：http://localhost:8080/api
+
+**公网访问**：
+- 自动生成的 URL（如：https://xxx-trycloudflare.com）
+
+**默认账号**：
+- 用户名：`admin`
+- 密码：`admin123`
+
+### 管理命令
+
+```bash
+# 查看日志
+tail -f backend.log        # 后端日志
+tail -f tunnel.log         # Tunnel 日志
+
+# 停止服务
+pkill -f "mvn spring-boot:run"
+pkill -f "cloudflared"
+
+# 重新启动
+cd backend && nohup mvn spring-boot:run > ../backend.log 2>&1 &
+nohup $CLOUDFLARED tunnel --url http://localhost:8080 > tunnel.log 2>&1 &
+```
+
+---
+
 ## NOTES
 
 - **项目来源**：三个原始项目合并，备份存放在 `source-projects/`

@@ -30,7 +30,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const response = await authApi.login({ password })
-      const data = response.data.data
+      const data = response.data  // ✅ 修复：响应拦截器已经解包了
 
       token.value = data.token
       localStorage.setItem('token', data.token)
@@ -59,7 +59,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const response = await authApi.getCurrentUser()
-      user.value = response.data.data
+      user.value = response.data  // ✅ 修复：响应拦截器已经解包了
     } catch (err) {
       logout()
     }

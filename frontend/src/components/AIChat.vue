@@ -161,7 +161,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, watch } from 'vue'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { aiApi, type AIModel } from '@/api/ai'
@@ -171,7 +171,12 @@ marked.setOptions({ breaks: true, gfm: true })
 interface Message {
   role: 'user' | 'assistant'
   content: string
+  timestamp?: number
 }
+
+// LocalStorage keys
+const STORAGE_KEY_MESSAGES = 'ai_chat_messages'
+const STORAGE_KEY_MODEL = 'ai_chat_model'
 
 const models = ref<AIModel[]>([])
 const selectedModel = ref('')
@@ -184,6 +189,52 @@ const status = ref<'connected' | 'disconnected'>('disconnected')
 const errorMessage = ref('')
 const messagesContainer = ref<HTMLDivElement>()
 let lastContext: number[] = []
+
+// Load messages from localStorage
+function loadMessages() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY_MESSAGES)
+    if (saved) {
+      messages.value = JSON.parse(saved)
+    }
+  } catch (error) {
+    console.error('Failed to load messages:', error)
+  }
+}
+
+// Save messages to localStorage
+function saveMessages() {
+  try {
+    localStorage.setItem(STORAGE_KEY_MESSAGES, JSON.stringify(messages.value))
+  } catch (error) {
+    console.error('Failed to save messages:', error)
+  }
+}
+
+// Load selected model from localStorage
+function loadSelectedModel() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY_MODEL)
+    if (saved) {
+      selectedModel.value = saved
+    }
+  } catch (error) {
+    console.error('Failed to load model:', error)
+  }
+}
+
+// Save selected model to localStorage
+function saveSelectedModel() {
+  try {
+    localStorage.setItem(STORAGE_KEY_MODEL, selectedModel.value)
+  } catch (error) {
+    console.error('Failed to save model:', error)
+  }
+}
+
+// Watch for changes and save
+watch(messages, saveMessages, { deep: true })
+watch(selectedModel, saveSelectedModel)
 
 function renderAiMessage(content: string): string {
   const rawHtml = marked.parse(content) as string
@@ -242,13 +293,17 @@ async function checkStatus() {
 async function sendMessage() {
   const message = inputMessage.value.trim()
   if (!message || isLoading.value || !selectedModel.value) return
-  
-  messages.value.push({ role: 'user', content: message })
+
+  messages.value.push({
+    role: 'user',
+    content: message,
+    timestamp: Date.now()
+  })
   inputMessage.value = ''
   isLoading.value = true
   errorMessage.value = ''
   streamingContent.value = ''
-  
+
   scrollToBottom()
   
   const prompt = buildPrompt()
@@ -266,9 +321,10 @@ async function sendMessage() {
     },
     () => {
       if (streamingContent.value) {
-        messages.value.push({ 
-          role: 'assistant', 
-          content: streamingContent.value 
+        messages.value.push({
+          role: 'assistant',
+          content: streamingContent.value,
+          timestamp: Date.now()
         })
         streamingContent.value = ''
       }
@@ -309,6 +365,8 @@ function scrollToBottom() {
 }
 
 onMounted(() => {
+  loadMessages()
+  loadSelectedModel()
   checkStatus()
   fetchModels()
 })
