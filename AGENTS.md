@@ -92,6 +92,9 @@ import type { GoldPrice } from '@/api/goldPrice'
 - 常量：`UPPER_SNAKE_CASE`
 - CSS 类：`kebab-case`（如 `.btn-primary`）
 
+### 回复规范
+- **所有答复使用中文** — AI 助手与用户交流时统一使用中文
+
 ---
 
 ## ANTI-PATTERNS (THIS PROJECT)
