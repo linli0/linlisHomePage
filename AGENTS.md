@@ -210,11 +210,59 @@ nohup $CLOUDFLARED tunnel --url http://localhost:8080 > tunnel.log 2>&1 &
 
 ---
 
+## TESTING FRAMEWORK
+
+### Backend Testing (Spring Boot)
+- **Framework**: JUnit 5 + Spring Boot Test + Testcontainers
+- **Dependencies**: Added Testcontainers, MySQL container, JUnit Jupiter
+- **Test Structure**: 
+  - `src/test/java/com/coffeecookies/homepage/` - Base test classes
+  - `controller/` - Controller integration tests with MockMvc
+  - `service/` - Service unit tests with Mockito  
+  - `repository/` - Repository tests with Testcontainers (real MySQL)
+  - `security/` - JWT and security component tests
+  - `integration/` - Full-stack integration tests
+- **Configuration**: `application-test.yml` for test environment
+- **Commands**: `mvn test`, `mvn test jacoco:report`
+
+### Frontend Testing (Vue 3)
+- **Framework**: Vitest + Vue Test Utils + MSW + Playwright
+- **Dependencies**: Added Vitest, Vue Test Utils, MSW, Playwright, happy-dom
+- **Test Structure**:
+  - `tests/setup.ts` - Global test setup with MSW
+  - `tests/unit/` - Utility and composable unit tests
+  - `tests/components/` - Component interaction tests
+  - `tests/stores/` - Pinia store tests
+  - `tests/api/` - API module tests with MSW mocking
+  - `tests/e2e/` - End-to-end tests with Playwright
+- **Configuration**: `vitest.config.ts`, `playwright.config.ts`
+- **Commands**: `npm test`, `npm run test:coverage`, `npm run test:e2e`
+
+### Testing Strategy
+- **Coverage Target**: >80% line coverage for business logic
+- **Testing Pyramid**: 70% Unit, 20% Integration, 10% E2E
+- **CI/CD**: All tests must pass before merge/deployment
+
+## DOCUMENTATION ARCHITECTURE
+
+### Centralized Documentation
+- **Location**: `doc/` directory (separate from code/config files)
+- **Structure**:
+  - `doc/architecture/` - System architecture and design decisions
+  - `doc/backend/` - Spring Boot backend implementation details
+  - `doc/frontend/` - Vue 3 frontend implementation details
+  - `doc/design/` - UI/UX design system and guidelines
+  - `doc/testing/` - Test frameworks, strategies, and results
+  - `doc/deployment/` - Deployment guides and production setup
+- **Migration**: All existing documentation files moved to appropriate locations in `doc/`
+- **Navigation**: Main `doc/index.md` serves as documentation hub
+
 ## NOTES
 
 - **项目来源**：三个原始项目合并，备份存放在 `source-projects/`
-- **测试状态**：Spring Boot 有测试框架，前端建议引入 Vitest
+- **测试状态**：完整的前后端测试框架已实现，包含单元测试、集成测试和E2E测试
 - **TypeScript 严格模式**：`strict: true`，避免 `any`
 - **Tailwind 自定义色板**：`primary`（蓝）、`gold`（金）、`accent`（紫）、`surface`（灰）
 - **Vue 组件风格**：全部使用 `<script setup lang="ts">`，无 Options API
 - **数据库**：开发使用 H2 内存数据库，生产使用 MySQL
+- **功能改动归档**：所有功能改动必须基于需求设计、技术设计、代码开发、白盒测试以及自动化测试进行完整归档

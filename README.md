@@ -2,6 +2,17 @@
 
 一个基于 Spring Boot + Vue 3 的全栈个人主页应用，集成了国际金价追踪、技术文章管理和实用工具箱等功能。
 
+## 📚 完整文档
+
+完整的项目文档现在位于 [`doc/`](doc/) 目录中，包含：
+
+- **[架构概述](doc/architecture/overview.md)** - 系统架构和设计决策
+- **[后端文档](doc/backend/)** - Spring Boot 后端实现细节
+- **[前端文档](doc/frontend/)** - Vue 3 前端实现细节  
+- **[设计系统](doc/design/)** - UI/UX 设计指南
+- **[测试框架](doc/testing/)** - 测试策略和结果
+- **[部署指南](doc/deployment/)** - 部署配置和生产设置
+
 ## 🚀 功能特性
 
 ### 💰 金价追踪模块

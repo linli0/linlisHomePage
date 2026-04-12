@@ -1,0 +1,44 @@
+# Test environment configuration
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DATABASE_TO_LOWER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+
+# JWT configuration for testing
+jwt:
+  secret: test-secret-key-for-testing-purposes-only
+  expiration: 86400000
+
+# MetalpriceAPI configuration for testing (disabled by default)
+metalpriceapi:
+  api-key: test-api-key
+  server: us
+  enabled: false
+
+# Ollama configuration for testing
+ollama:
+  base-url: http://localhost:11434
+  enabled: false
+
+# Logging configuration for tests
+logging:
+  level:
+    com.coffeecookies.homepage: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# Test-specific properties
+test:
+  jwt-secret: test-secret-key-for-testing-purposes-only
+  metalpriceapi-enabled: false

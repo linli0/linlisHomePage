@@ -191,12 +191,65 @@ request.interceptors.response.use(
 
 ---
 
+## TESTING FRAMEWORK
+
+### Test Structure
+```
+tests/
+├── setup.ts                    # Global test setup with MSW
+├── mocks/
+│   ├── handlers.ts            # API mock handlers
+│   ├── browser.ts             # MSW browser setup
+│   └── node.ts                # MSW node setup
+├── unit/                      # Utility and composable tests
+├── components/                # Component interaction tests
+├── stores/                    # Pinia store tests
+├── api/                       # API module tests
+├── integration/               # Multi-component integration tests
+└── e2e/                       # End-to-end user journey tests
+```
+
+### Dependencies
+- **Test Framework**: Vitest
+- **Component Testing**: Vue Test Utils + @testing-library/vue
+- **API Mocking**: Mock Service Worker (MSW)
+- **E2E Testing**: Playwright
+- **Coverage**: V8 coverage provider
+
+### Commands
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm test -- --watch
+
+# Generate coverage report  
+npm test -- --coverage
+
+# Run E2E tests
+npm run test:e2e
+
+# Run E2E tests in UI mode
+npm run test:e2e:ui
+```
+
+### Test Patterns
+- **Unit Tests**: Utilities and composables with Vitest
+- **Component Tests**: Views and components with Vue Test Utils
+- **Store Tests**: Pinia store actions and getters
+- **API Tests**: HTTP modules with MSW mocking
+- **E2E Tests**: Critical user flows with Playwright
+
 ## COMMANDS
 
 ```bash
 npm run dev      # Vite 开发服务器 (端口 3000)
 npm run build    # 构建到 dist/
 npm run preview  # 预览构建结果
+npm test         # 运行测试套件
+npm run test:coverage  # 生成覆盖率报告
+npm run test:e2e # 运行端到端测试
 ```
 
 ---

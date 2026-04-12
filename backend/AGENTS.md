@@ -157,6 +157,52 @@ Result.error(message) // { code: 400, message: "...", data: null }
 
 ***
 
+## TESTING FRAMEWORK
+
+### Test Structure
+```
+src/test/java/com/coffeecookies/homepage/
+├── BaseIntegrationTest.java     # Base class with MockMvc, cleanup
+├── TestcontainersIntegrationTest.java  # Testcontainers base class  
+├── TestDataBuilder.java         # Test data factory methods
+├── JwtTestUtils.java           # JWT token generation for tests
+├── controller/                 # Controller integration tests
+├── service/                    # Service unit tests (existing GoldPriceService tests)
+├── repository/                 # Repository integration tests  
+├── security/                   # Security component tests
+├── config/                     # Configuration tests
+├── dto/                        # DTO validation tests
+└── integration/                # Full-stack integration tests
+```
+
+### Dependencies
+- **Test Framework**: JUnit 5 + Spring Boot Test
+- **Mocking**: Mockito  
+- **Integration Testing**: Testcontainers (MySQL container)
+- **Coverage**: JaCoCo
+
+### Commands
+```bash
+# Run all tests
+mvn test
+
+# Run specific test class
+mvn test -Dtest=AuthServiceTest
+
+# Generate coverage report
+mvn test jacoco:report
+
+# Run with Testcontainers (real MySQL)  
+mvn test -Dspring.profiles.active=testcontainers
+```
+
+### Test Patterns
+- **Unit Tests**: Service layer with Mockito mocking
+- **Integration Tests**: Controller layer with MockMvc
+- **Repository Tests**: JPA repositories with Testcontainers
+- **Security Tests**: JWT validation and endpoint permissions
+- **Scheduled Task Tests**: Timer-based functionality
+
 ## COMMANDS
 
 ```bash
@@ -169,7 +215,7 @@ java -jar target/homepage-backend-1.0.0.jar
 # 开发模式
 mvn spring-boot:run
 
-# 测试（目前无测试文件）
+# 测试
 mvn test
 ```
 
@@ -189,4 +235,65 @@ mvn test
 - **审计**: `@EnableJpaAuditing` + `@CreatedDate`/`@LastModifiedDate`
 - **定时任务**: `@EnableScheduling` + `@Scheduled` (GoldPriceService)
 - **CORS**: 允许所有来源（生产环境需限制）
+- **MetalpriceAPI 集成**: 支持真实金价数据，通过环境变量配置
+
+***
+
+## METALPRICEAPI 集成
+
+### 配置方式
+
+**环境变量**:
+```bash
+export METALPRICE_API_KEY=your-api-key-here
+export METALPRICE_ENABLED=true
+export METALPRICE_SERVER=us  # 或 eu
+```
+
+**application.yml**:
+```yaml
+metalpriceapi:
+  api-key: ${METALPRICE_API_KEY:}
+  server: ${METALPRICE_SERVER:us}
+  enabled: ${METALPRICE_ENABLED:false}
+```
+
+### 工作原理
+
+1. **定时任务**: 每分钟调用 `updateGoldPrice()` 方法
+2. **API 调用**: 必须启用 MetalpriceAPI 并配置有效的 API 密钥
+3. **错误处理**: API 调用失败时记录错误日志，不会保存数据
+4. **禁用行为**: 如果 MetalpriceAPI 未启用，定时任务会跳过更新
+5. **数据存储**: 仅在 API 成功返回时保存价格数据到数据库
+
+### 配置说明
+
+**环境变量**:
+```bash
+# 必须设置为 true 才能启用金价更新
+export METALPRICE_ENABLED=true
+
+# 必须配置有效的 API 密钥
+export METALPRICE_API_KEY=your-api-key-here
+
+# 可选：选择服务器区域（us 或 eu，默认 us）
+export METALPRICE_SERVER=us
+```
+
+**application.yml**:
+```yaml
+metalpriceapi:
+  api-key: ${METALPRICE_API_KEY:}
+  server: ${METALPRICE_SERVER:us}
+  enabled: ${METALPRICE_ENABLED:false}
+```
+
+### 注意事项
+
+- **必须配置 API 密钥**: 未配置 API 密钥时系统无法获取金价数据
+- **必须启用服务**: 设置 `METALPRICE_ENABLED=true` 才会更新金价
+- **免费层有限额**: 注意 API 调用次数限制
+- **日志监控**: 查看日志了解 API 调用状态
+- **生产环境**: 必须启用真实数据，系统不支持模拟数据
+- **无降级机制**: API 不可用时不会自动降级，必须确保 API 可用
 
