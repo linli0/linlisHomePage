@@ -1,12 +1,12 @@
 package com.coffeecookies.homepage;
 
-import com.coffeecookies.homepage.security.JwtUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.beans.factory.annotation.Value;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 /**
@@ -16,7 +16,9 @@ import java.util.Date;
 @Component
 public class JwtTestUtils {
 
-    private static final String TEST_JWT_SECRET = "test-secret-key-for-testing-purposes-only";
+    private static final SecretKey TEST_JWT_SECRET = Keys.hmacShaKeyFor(
+            "test-secret-key-for-testing-purposes-only-32bytes".getBytes(StandardCharsets.UTF_8)
+    );
     private static final long TEST_JWT_EXPIRATION = 86400000; // 24 hours
 
     /**
@@ -24,10 +26,10 @@ public class JwtTestUtils {
      */
     public static String generateToken(String username) {
         return Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + TEST_JWT_EXPIRATION))
-                .signWith(SignatureAlgorithm.HS512, TEST_JWT_SECRET)
+                .subject(username)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + TEST_JWT_EXPIRATION))
+                .signWith(TEST_JWT_SECRET)
                 .compact();
     }
 
@@ -36,10 +38,10 @@ public class JwtTestUtils {
      */
     public static String generateExpiredToken(String username) {
         return Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(new Date(System.currentTimeMillis() - TEST_JWT_EXPIRATION - 1000))
-                .setExpiration(new Date(System.currentTimeMillis() - 1000))
-                .signWith(SignatureAlgorithm.HS512, TEST_JWT_SECRET)
+                .subject(username)
+                .issuedAt(new Date(System.currentTimeMillis() - TEST_JWT_EXPIRATION - 1000))
+                .expiration(new Date(System.currentTimeMillis() - 1000))
+                .signWith(TEST_JWT_SECRET)
                 .compact();
     }
 
@@ -48,8 +50,9 @@ public class JwtTestUtils {
      */
     public static Claims validateToken(String token) {
         return Jwts.parser()
-                .setSigningKey(TEST_JWT_SECRET)
-                .parseClaimsJws(token)
-                .getBody();
+                .verifyWith(TEST_JWT_SECRET)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }

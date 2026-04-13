@@ -14,7 +14,7 @@ export default defineConfig({
     globals: true,
     
     // Environment
-    environment: 'happy-dom',
+    environment: 'node',
     
     // File patterns
     include: ['tests/**/*.{test,spec}.{ts,tsx}', 'src/**/*.{test,spec}.{ts,tsx}'],

@@ -12,17 +12,17 @@ describe('Auth API', () => {
     const response = await authApi.login(loginRequest)
     
     expect(response).toBeDefined()
-    expect(response.token).toBe('mock-jwt-token-for-testing')
-    expect(response.username).toBe('admin')
-    expect(response.role).toBe('ADMIN')
+    expect(response.data.token).toBe('mock-jwt-token-for-testing')
+    expect(response.data.username).toBe('admin')
+    expect(response.data.role).toBe('ADMIN')
   })
 
   test('should get current user', async () => {
     const response = await authApi.getCurrentUser()
     
     expect(response).toBeDefined()
-    expect(response.username).toBe('testuser')
-    expect(response.email).toBe('test@example.com')
+    expect(response.data.username).toBe('testuser')
+    expect(response.data.email).toBe('test@example.com')
   })
 
   test('should update profile', async () => {

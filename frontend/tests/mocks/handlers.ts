@@ -1,10 +1,11 @@
-// Mock API handlers for testing
 import { http, HttpResponse } from 'msw'
 
-// Mock auth endpoints
+const API_BASE = 'http://localhost/api'
+
 export const authHandlers = [
-  http.post('/api/auth/login', async ({ request }) => {
-    const body = await request.json()
+  http.post(`${API_BASE}/auth/login`, async ({ request }) => {
+    const body = await request.json() as { username?: string; password?: string }
+
     if (body.password === 'admin123' || body.password === 'user123') {
       return HttpResponse.json({
         code: 200,
@@ -22,13 +23,14 @@ export const authHandlers = [
         }
       })
     }
+
     return HttpResponse.json(
       { code: 401, message: 'Invalid credentials', data: null },
       { status: 401 }
     )
   }),
 
-  http.get('/api/auth/me', () => {
+  http.get(`${API_BASE}/auth/me`, () => {
     return HttpResponse.json({
       code: 200,
       message: 'Success',
@@ -41,12 +43,35 @@ export const authHandlers = [
         role: 'USER'
       }
     })
+  }),
+
+  http.put(`${API_BASE}/auth/profile`, async ({ request }) => {
+    const body = await request.json() as { displayName?: string; email?: string }
+    return HttpResponse.json({
+      code: 200,
+      message: 'Success',
+      data: {
+        id: 1,
+        username: 'testuser',
+        email: body.email || 'test@example.com',
+        displayName: body.displayName || 'Test User',
+        avatar: null,
+        role: 'USER'
+      }
+    })
+  }),
+
+  http.put(`${API_BASE}/auth/password`, () => {
+    return HttpResponse.json({
+      code: 200,
+      message: 'Success',
+      data: null
+    })
   })
 ]
 
-// Mock gold price endpoints
 export const goldPriceHandlers = [
-  http.get('/api/gold-price/current', () => {
+  http.get(`${API_BASE}/gold-price/current`, () => {
     return HttpResponse.json({
       code: 200,
       message: 'Success',
@@ -65,12 +90,12 @@ export const goldPriceHandlers = [
     })
   }),
 
-  http.get('/api/gold-price/history', () => {
+  http.get(`${API_BASE}/gold-price/history`, () => {
     const history = Array.from({ length: 30 }, (_, i) => ({
       timestamp: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
       price: 2500 + Math.random() * 100 - 50
     })).reverse()
-    
+
     return HttpResponse.json({
       code: 200,
       message: 'Success',
@@ -78,7 +103,7 @@ export const goldPriceHandlers = [
     })
   }),
 
-  http.get('/api/gold-price/currencies', () => {
+  http.get(`${API_BASE}/gold-price/currencies`, () => {
     return HttpResponse.json({
       code: 200,
       message: 'Success',
@@ -92,9 +117,8 @@ export const goldPriceHandlers = [
   })
 ]
 
-// Mock article endpoints
 export const articleHandlers = [
-  http.get('/api/articles/public/list', () => {
+  http.get(`${API_BASE}/articles/public/list`, () => {
     return HttpResponse.json({
       code: 200,
       message: 'Success',
@@ -135,7 +159,6 @@ export const articleHandlers = [
   })
 ]
 
-// All mock handlers
 export const handlers = [
   ...authHandlers,
   ...goldPriceHandlers,

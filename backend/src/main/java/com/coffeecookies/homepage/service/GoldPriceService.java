@@ -12,11 +12,17 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URI;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+
+import org.json.JSONObject;
 
 @Slf4j
 @Service
@@ -26,6 +32,15 @@ public class GoldPriceService {
     private final GoldPriceRepository goldPriceRepository;
     private final ExchangeRateRepository exchangeRateRepository;
     private final WebClient webClient = WebClient.builder().build();
+
+    @Value("${metalpriceapi.api-key:}")
+    private String metalpriceApiKey;
+
+    @Value("${metalpriceapi.server:us}")
+    private String metalpriceApiServer;
+
+    @Value("${metalpriceapi.enabled:false}")
+    private boolean metalpriceApiEnabled;
 
     private static final Map<String, CurrencyInfo> CURRENCIES = Map.of(
             "USD", new CurrencyInfo("USD", "美元", "$", "🇺🇸"),
@@ -87,6 +102,12 @@ public class GoldPriceService {
     @Scheduled(fixedRate = 60000) // Every minute
     @Transactional
     public void updateGoldPrice() {
+        // 如果未启用 MetalpriceAPI，跳过更新
+        if (!metalpriceApiEnabled) {
+            log.debug("MetalpriceAPI is disabled, skipping gold price update");
+            return;
+        }
+        
         try {
             BigDecimal newPrice = fetchGoldPriceFromAPI();
             
@@ -113,7 +134,7 @@ public class GoldPriceService {
             updateExchangeRates();
             
         } catch (Exception e) {
-            log.error("Failed to update gold price", e);
+            log.error("Failed to update gold price: {}", e.getMessage(), e);
         }
     }
 
@@ -153,15 +174,70 @@ public class GoldPriceService {
     }
 
     private BigDecimal fetchGoldPriceFromAPI() {
-        // In production, use a real gold price API
-        // For demo, simulate price with small random variation around $2000-2100
-        GoldPrice lastPrice = goldPriceRepository.findTopByOrderByRecordedAtDesc().orElse(null);
+        // 如果未启用 MetalpriceAPI 或未配置 API 密钥，抛出异常
+        if (!metalpriceApiEnabled) {
+            throw new IllegalStateException("MetalpriceAPI is not enabled. Please set METALPRICE_ENABLED=true");
+        }
         
-        BigDecimal basePrice = lastPrice != null ? lastPrice.getPriceUsd() : new BigDecimal("2050.00");
+        if (metalpriceApiKey == null || metalpriceApiKey.isEmpty()) {
+            throw new IllegalStateException("MetalpriceAPI key is not configured. Please set METALPRICE_API_KEY environment variable");
+        }
         
-        // Random variation between -5 and +5
-        double variation = (Math.random() - 0.5) * 10;
-        return basePrice.add(BigDecimal.valueOf(variation)).setScale(2, RoundingMode.HALF_UP);
+        // 构建 API URL
+        String baseUrl = metalpriceApiServer.equals("eu")
+            ? "https://api-eu.metalpriceapi.com/v1/latest"
+            : "https://api.metalpriceapi.com/v1/latest";
+            
+        URI uri = UriComponentsBuilder.fromHttpUrl(baseUrl)
+            .queryParam("api_key", metalpriceApiKey)
+            .queryParam("base", "USD")
+            .queryParam("currencies", "XAU")
+            .build()
+            .toUri();
+            
+        // 调用 API
+        String response = webClient.get()
+            .uri(uri)
+            .retrieve()
+            .bodyToMono(String.class)
+            .block(Duration.ofSeconds(10));
+            
+        if (response == null) {
+            throw new RuntimeException("MetalpriceAPI returned null response");
+        }
+        
+        // 解析 JSON 响应
+        JSONObject jsonResponse = new JSONObject(response);
+        
+        // 检查 API 响应是否成功
+        if (!jsonResponse.optBoolean("success", true)) {
+            JSONObject error = jsonResponse.optJSONObject("error");
+            String errorMsg = error != null ? error.optString("info", "Unknown error") : "API call failed";
+            throw new RuntimeException("MetalpriceAPI error: " + errorMsg);
+        }
+        
+        // 提取价格
+        if (!jsonResponse.has("rates")) {
+            throw new RuntimeException("MetalpriceAPI response missing rates field");
+        }
+        
+        JSONObject rates = jsonResponse.getJSONObject("rates");
+        if (!rates.has("USDXAU")) {
+            throw new RuntimeException("MetalpriceAPI response missing USDXAU field");
+        }
+        
+        double usdXau = rates.getDouble("USDXAU");
+        
+        // 转换：API 返回的是 USDXAU（1 USD = X XAU），需要取反得到 USD per troy ounce
+        if (usdXau <= 0) {
+            throw new RuntimeException("MetalpriceAPI returned invalid USDXAU value: " + usdXau);
+        }
+        
+        double usdPerTroyOunce = 1.0 / usdXau;
+        BigDecimal price = BigDecimal.valueOf(usdPerTroyOunce).setScale(2, RoundingMode.HALF_UP);
+        
+        log.info("Successfully fetched gold price from MetalpriceAPI: {} USD/troy oz", price);
+        return price;
     }
 
     private GoldPrice createInitialPrice() {

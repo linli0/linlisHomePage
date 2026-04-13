@@ -15,6 +15,12 @@ const router = createRouter({
       component: () => import('@/views/GoldPriceView.vue')
     },
     {
+      path: '/tweets',
+      name: 'TweetsMonitor',
+      component: () => import('@/views/TweetsView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/articles',
       name: 'Articles',
       component: () => import('@/views/ArticlesView.vue')

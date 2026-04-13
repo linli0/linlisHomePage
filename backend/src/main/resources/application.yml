@@ -62,6 +62,34 @@ site:
 ollama:
   base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
 
+# MetalpriceAPI Configuration
+metalpriceapi:
+  api-key: ${METALPRICE_API_KEY:}
+  server: ${METALPRICE_SERVER:us}
+  enabled: ${METALPRICE_ENABLED:false}
+
+# Twitter Configuration
+twitter:
+  enabled: true
+  streaming:
+    bearer-token: AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA
+  api:
+    auth-token: ${TWITTER_AUTH_TOKEN:}
+    ct0: ${TWITTER_CT0:}
+
+# Truth Social Configuration
+truth-social:
+  enabled: true
+  api:
+    enabled: true
+
+# Tweets Configuration
+tweets:
+  fallback:
+    polling:
+      enabled: true
+      interval-seconds: 300
+
 # Logging
 logging:
   level:

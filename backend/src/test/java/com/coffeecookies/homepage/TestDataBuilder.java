@@ -6,7 +6,6 @@ import com.coffeecookies.homepage.entity.Article;
 import com.coffeecookies.homepage.entity.Category;
 import com.coffeecookies.homepage.entity.Tag;
 import com.coffeecookies.homepage.entity.ExchangeRate;
-import com.coffeecookies.homepage.entity.Role;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -27,14 +26,14 @@ public class TestDataBuilder {
                 .email("test@example.com")
                 .displayName("Test User")
                 .avatar("https://example.com/avatar.jpg")
-                .role(Role.USER)
+                .role(User.Role.USER)
                 .enabled(true);
     }
 
     public static User adminUser() {
         return user()
                 .username("admin")
-                .role(Role.ADMIN)
+                .role(User.Role.ADMIN)
                 .build();
     }
 
@@ -56,7 +55,7 @@ public class TestDataBuilder {
                 .summary("This is a test article summary")
                 .coverImage("https://example.com/cover.jpg")
                 .published(true)
-                .viewCount(0L);
+                .viewCount(0);
     }
 
     // Category builders

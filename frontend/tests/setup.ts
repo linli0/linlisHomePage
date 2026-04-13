@@ -43,6 +43,11 @@ const localStorageMock = (() => {
   }
 })()
 
-Object.defineProperty(window, 'localStorage', {
+const testGlobal = globalThis as typeof globalThis & { window?: typeof globalThis }
+if (!testGlobal.window) {
+  testGlobal.window = testGlobal
+}
+
+Object.defineProperty(testGlobal, 'localStorage', {
   value: localStorageMock
 })

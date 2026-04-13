@@ -63,6 +63,7 @@ public class SecurityConfig {
                             .requestMatchers("/api/categories/**").permitAll()
                             .requestMatchers("/api/tags/**").permitAll()
                             .requestMatchers("/api/tools/**").permitAll()
+                            .requestMatchers("/api/tweets/**").permitAll()
                             .requestMatchers("/api/ai/status").permitAll()
                             .requestMatchers("/h2-console/**").permitAll()
                             .requestMatchers("/actuator/health").permitAll()

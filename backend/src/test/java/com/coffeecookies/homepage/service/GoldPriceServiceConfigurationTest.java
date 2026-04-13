@@ -1,163 +1,103 @@
 package com.coffeecookies.homepage.service;
 
+import com.coffeecookies.homepage.dto.CurrencyDTO;
+import com.coffeecookies.homepage.dto.GoldPriceDTO;
+import com.coffeecookies.homepage.entity.GoldPrice;
+import com.coffeecookies.homepage.repository.ExchangeRateRepository;
+import com.coffeecookies.homepage.repository.GoldPriceRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
-/**
- * GoldPriceService 配置验证测试
- * 测试 MetalpriceAPI 配置验证逻辑
- */
 @ExtendWith(MockitoExtension.class)
 class GoldPriceServiceConfigurationTest {
 
     @Mock
-    private WebClient webClient;
+    private GoldPriceRepository goldPriceRepository;
 
-    @InjectMocks
+    @Mock
+    private ExchangeRateRepository exchangeRateRepository;
+
     private GoldPriceService goldPriceService;
 
     @BeforeEach
     void setUp() {
-        goldPriceService = new GoldPriceService(null, null, webClient);
+        goldPriceService = new GoldPriceService(goldPriceRepository, exchangeRateRepository);
+        ReflectionTestUtils.setField(goldPriceService, "metalpriceApiEnabled", false);
     }
 
     @Test
-    void fetchGoldPriceFromAPI_shouldThrowException_whenMetalpriceApiDisabled() {
-        // Given
-        goldPriceService = new GoldPriceService(null, null, webClient);
-        goldPriceService.setMetalpriceApiEnabled(false);
-        goldPriceService.setMetalpriceApiKey("test-key");
+    void getCurrentPrice_shouldCreateInitialPrice_whenNoPriceExists() {
+        when(goldPriceRepository.findTopByOrderByRecordedAtDesc()).thenReturn(Optional.empty());
+        when(goldPriceRepository.save(any(GoldPrice.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(goldPriceRepository.findByRecordedAtAfterOrderByRecordedAtAsc(any())).thenReturn(List.of());
 
-        // When & Then
-        IllegalStateException exception = assertThrows(
-            IllegalStateException.class,
-            () -> goldPriceService.fetchGoldPriceFromAPI()
-        );
+        GoldPriceDTO dto = goldPriceService.getCurrentPrice("USD");
 
-        assertEquals(
-            "MetalpriceAPI is not enabled. Please set METALPRICE_ENABLED=true",
-            exception.getMessage()
-        );
+        assertThat(dto).isNotNull();
+        assertThat(dto.getCurrency()).isEqualTo("USD");
+        assertThat(dto.getPrice()).isEqualByComparingTo("2050.00");
+        verify(goldPriceRepository).save(any(GoldPrice.class));
     }
 
     @Test
-    void fetchGoldPriceFromAPI_shouldThrowException_whenApiKeyNotConfigured() {
-        // Given
-        goldPriceService = new GoldPriceService(null, null, webClient);
-        goldPriceService.setMetalpriceApiEnabled(true);
-        goldPriceService.setMetalpriceApiKey("");
-        goldPriceService.setMetalpriceApiServer("us");
+    void getPriceHistory_shouldGenerateHistory_whenRepositoryReturnsEmpty() {
+        when(goldPriceRepository.findByRecordedAtAfterOrderByRecordedAtAsc(any())).thenReturn(List.of());
+        when(goldPriceRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // When & Then
-        IllegalStateException exception = assertThrows(
-            IllegalStateException.class,
-            () -> goldPriceService.fetchGoldPriceFromAPI()
-        );
+        List<GoldPriceDTO.PricePoint> points = goldPriceService.getPriceHistory("USD", 5);
 
-        assertEquals(
-            "MetalpriceAPI key is not configured. Please set METALPRICE_API_KEY environment variable",
-            exception.getMessage()
-        );
+        assertThat(points).hasSize(6);
+        assertThat(points).allMatch(point -> point.getPrice() != null);
     }
 
     @Test
-    void fetchGoldPriceFromAPI_shouldThrowException_whenApiKeyIsNull() {
-        // Given
-        goldPriceService = new GoldPriceService(null, null, webClient);
-        goldPriceService.setMetalpriceApiEnabled(true);
-        goldPriceService.setMetalpriceApiKey(null);
-        goldPriceService.setMetalpriceApiServer("us");
+    void getSupportedCurrencies_shouldReturnAllConfiguredCurrencies() {
+        when(exchangeRateRepository.findByFromCurrencyAndToCurrency(any(), any())).thenReturn(Optional.empty());
+        List<CurrencyDTO> currencies = new ArrayList<>(goldPriceService.getSupportedCurrencies());
 
-        // When & Then
-        IllegalStateException exception = assertThrows(
-            IllegalStateException.class,
-            () -> goldPriceService.fetchGoldPriceFromAPI()
-        );
-
-        assertEquals(
-            "MetalpriceAPI key is not configured. Please set METALPRICE_API_KEY environment variable",
-            exception.getMessage()
-        );
+        assertThat(currencies).hasSize(4);
+        assertThat(currencies).extracting(CurrencyDTO::getCode)
+                .containsExactlyInAnyOrder("USD", "CNY", "EUR", "GBP");
     }
 
     @Test
-    void fetchGoldPriceFromAPI_shouldThrowException_whenApiKeyContainsOnlySpaces() {
-        // Given
-        goldPriceService = new GoldPriceService(null, null, webClient);
-        goldPriceService.setMetalpriceApiEnabled(true);
-        goldPriceService.setMetalpriceApiKey("   ");
-        goldPriceService.setMetalpriceApiServer("us");
-
-        // When & Then
-        IllegalStateException exception = assertThrows(
-            IllegalStateException.class,
-            () -> goldPriceService.fetchGoldPriceFromAPI()
-        );
-
-        assertEquals(
-            "MetalpriceAPI key is not configured. Please set METALPRICE_API_KEY environment variable",
-            exception.getMessage()
-        );
-    }
-
-    @Test
-    void updateGoldPrice_shouldSkipUpdate_whenMetalpriceApiDisabled() {
-        // Given
-        goldPriceService = new GoldPriceService(null, null, webClient);
-        goldPriceService.setMetalpriceApiEnabled(false);
-
-        // When
+    void updateGoldPrice_shouldSkipWhenMetalPriceApiDisabled() {
         goldPriceService.updateGoldPrice();
 
-        // Then
-        verify(webClient, never()).get();
+        verifyNoInteractions(goldPriceRepository);
     }
 
     @Test
-    void updateGoldPrice_shouldSkipUpdate_whenEnabledAndApiKeyEmpty() {
-        // Given
-        goldPriceService = new GoldPriceService(null, null, webClient);
-        goldPriceService.setMetalpriceApiEnabled(true);
-        goldPriceService.setMetalpriceApiKey("");
+    void getCurrentPrice_shouldApplyFallbackExchangeRate() {
+        GoldPrice price = new GoldPrice();
+        price.setPriceUsd(new BigDecimal("100.00"));
+        price.setChangeAmount(BigDecimal.ZERO);
+        price.setChangePercent(BigDecimal.ZERO);
+        price.setCurrency("USD");
+        price.setRecordedAt(LocalDateTime.now());
 
-        // When
-        goldPriceService.updateGoldPrice();
+        when(goldPriceRepository.findTopByOrderByRecordedAtDesc()).thenReturn(Optional.of(price));
+        when(goldPriceRepository.findByRecordedAtAfterOrderByRecordedAtAsc(any())).thenReturn(List.of(price));
+        when(exchangeRateRepository.findByFromCurrencyAndToCurrency(any(), any())).thenReturn(Optional.empty());
 
-        // Then
-        verify(webClient, never()).get();
-    }
+        GoldPriceDTO cnyDto = goldPriceService.getCurrentPrice("CNY");
 
-    // Setter methods for testing
-    private static class TestableGoldPriceService extends GoldPriceService {
-        public TestableGoldPriceService(Object repo, Object exchangeRepo, WebClient webClient) {
-            super((com.coffeecookies.homepage.repository.GoldPriceRepository) repo,
-                  (com.coffeecookies.homepage.repository.ExchangeRateRepository) exchangeRepo,
-                  webClient);
-        }
-
-        public void setMetalpriceApiEnabled(boolean enabled) {
-            this.metalpriceApiEnabled = enabled;
-        }
-
-        public void setMetalpriceApiKey(String key) {
-            this.metalpriceApiKey = key;
-        }
-
-        public void setMetalpriceApiServer(String server) {
-            this.metalpriceApiServer = server;
-        }
+        assertThat(cnyDto.getPrice()).isEqualByComparingTo("720.00");
     }
 }

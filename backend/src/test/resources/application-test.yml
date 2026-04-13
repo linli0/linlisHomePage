@@ -16,7 +16,7 @@ spring:
 
 # JWT configuration for testing
 jwt:
-  secret: test-secret-key-for-testing-purposes-only
+  secret: dGVzdC1zZWNyZXQta2V5LWZvci10ZXN0aW5nLXB1cnBvc2VzLW9ubHktMzJieXRlcw==
   expiration: 86400000
 
 # MetalpriceAPI configuration for testing (disabled by default)
