@@ -7,6 +7,7 @@ import com.coffeecookies.homepage.repository.UserRepository;
 import com.coffeecookies.homepage.security.JwtUtils;
 import com.coffeecookies.homepage.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -15,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -60,10 +62,13 @@ public class AuthService {
     public AuthResponse loginWithPasswordOnly(String password) {
         // Try to authenticate with admin password first
         User adminUser = userRepository.findByUsername("admin").orElse(null);
+        
         if (adminUser != null && passwordEncoder.matches(password, adminUser.getPassword())) {
-            // Create authentication token for admin
+            log.info("Password-only login successful for admin");
+            // Create authentication token for admin with UserDetailsImpl as principal
+            UserDetailsImpl userDetails = UserDetailsImpl.build(adminUser);
             Authentication authentication = new UsernamePasswordAuthenticationToken(
-                "admin", password, UserDetailsImpl.build(adminUser).getAuthorities());
+                userDetails, null, userDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = jwtUtils.generateJwtToken(authentication);
             
@@ -83,9 +88,11 @@ public class AuthService {
         // Try user password
         User userUser = userRepository.findByUsername("user").orElse(null);
         if (userUser != null && passwordEncoder.matches(password, userUser.getPassword())) {
-            // Create authentication token for user
+            log.info("Password-only login successful for user");
+            // Create authentication token for user with UserDetailsImpl as principal
+            UserDetailsImpl userDetails = UserDetailsImpl.build(userUser);
             Authentication authentication = new UsernamePasswordAuthenticationToken(
-                "user", password, UserDetailsImpl.build(userUser).getAuthorities());
+                userDetails, null, userDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = jwtUtils.generateJwtToken(authentication);
             

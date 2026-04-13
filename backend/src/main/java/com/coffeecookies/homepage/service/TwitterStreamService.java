@@ -306,7 +306,7 @@ public class TwitterStreamService {
                 try {
                     // Parse ISO 8601 date format: "2023-01-01T12:00:00.000Z"
                     String createdAtStr = data.get("created_at").asText();
-                    java.time.LocalDateTime createdAt = java.time.LocalDateTime.parse(
+                    java.time.LocalDateTime createdAt = java.time.OffsetDateTime.parse(
                         createdAtStr.replace("Z", "+00:00"),
                         java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME
                     ).toLocalDateTime();
