@@ -68,6 +68,16 @@ metalpriceapi:
   server: ${METALPRICE_SERVER:us}
   enabled: ${METALPRICE_ENABLED:false}
 
+# Xiaomi Speaker Configuration
+xiaomi:
+  speaker:
+    device-ip: ${XIAOMI_DEVICE_IP:}
+    device-token: ${XIAOMI_DEVICE_TOKEN:}
+    device-model: ${XIAOMI_DEVICE_MODEL:LX06}
+    mi-account-username: ${XIAOMI_MI_ACCOUNT_USERNAME:}
+    mi-account-password: ${XIAOMI_MI_ACCOUNT_PASSWORD:}
+    enabled: ${XIAOMI_SPEAKER_ENABLED:false}
+
 # Twitter Configuration
 twitter:
   enabled: true
