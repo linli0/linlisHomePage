@@ -13,8 +13,8 @@ export default defineConfig({
     // Global APIs
     globals: true,
     
-    // Environment
-    environment: 'node',
+    // Environment - use happy-dom for Vue component tests
+    environment: 'happy-dom',
     
     // File patterns
     include: ['tests/**/*.{test,spec}.{ts,tsx}', 'src/**/*.{test,spec}.{ts,tsx}'],
