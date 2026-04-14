@@ -41,6 +41,25 @@ METALPRICE_SERVER=us  # or eu
 SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/homepage
 SPRING_DATASOURCE_USERNAME=homepage_user
 SPRING_DATASOURCE_PASSWORD=secure_password
+
+# Social Media Authentication
+TWITTER_AUTH_TOKEN=your-twitter-auth-token
+TWITTER_CT0=your-twitter-ct0-token
+
+# Truth Social Configuration
+TRUTH_SOCIAL_USERNAME=your-truth-social-username
+TRUTH_SOCIAL_PASSWORD=your-truth-social-password
+
+# Xiaomi Smart Home Integration
+XIAOMI_DEVICE_IP=192.168.1.100
+XIAOMI_DEVICE_TOKEN=your-xiaomi-device-token
+XIAOMI_SPEAKER_ENABLED=true
+
+# Ollama AI Configuration
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_REMOTE_URL=https://your-remote-ollama-instance.com
+OLLAMA_REMOTE_ENABLED=false
+OLLAMA_AUTO_SWITCH=true
 ```
 
 #### Frontend Optional Variables
@@ -201,6 +220,27 @@ nohup cloudflared tunnel --url http://localhost:8080 > tunnel.log 2>&1 &
 - **Node.js**: LTS version (20.x recommended)
 - **Database**: MySQL 8.0 (production) or H2 (development)
 - **AI Service**: Ollama (optional, for AI features)
+
+#### Exact Dependency Versions
+
+##### Frontend Dependencies
+- **Vue**: 3.4.15
+- **TypeScript**: 5.3.3
+- **Vite**: 5.0.11
+- **Pinia**: 2.1.7
+- **Vue Router**: 4.2.5
+- **Axios**: 1.6.5
+- **Tailwind CSS**: 3.4.1
+- **Chart.js**: 4.4.1
+- **lightweight-charts**: 5.1.0
+- **trading-signals**: 7.4.3
+
+##### Backend Dependencies
+- **Spring Boot**: 3.2.0
+- **Java**: 17
+- **JJWT**: 0.12.3
+- **Testcontainers**: 1.19.7
+- **ZXing**: 3.5.2
 
 ## 🔒 Security Configuration
 

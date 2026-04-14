@@ -25,12 +25,82 @@ public class AIService {
     @Value("${ollama.base-url:http://localhost:11434}")
     private String ollamaBaseUrl;
     
+    @Value("${ollama.remote-url:}")
+    private String ollamaRemoteUrl;
+    
+    @Value("${ollama.remote-enabled:false}")
+    private boolean remoteEnabled;
+    
+    @Value("${ollama.auto-switch:true}")
+    private boolean autoSwitch;
+    
+    // 当前使用的 URL（自动切换）
+    private String currentOllamaUrl;
+    
     private final WebClient.Builder webClientBuilder;
+    
+    /**
+     * 获取当前有效的 Ollama URL
+     * 如果本地不在线且启用了自动切换，则使用远程 URL
+     */
+    private String getEffectiveOllamaUrl() {
+        if (currentOllamaUrl != null) {
+            return currentOllamaUrl;
+        }
+        
+        // 先检查本地状态
+        boolean localOnline = checkOllamaOnline(ollamaBaseUrl);
+        
+        if (localOnline) {
+            currentOllamaUrl = ollamaBaseUrl;
+            log.info("Using local Ollama at: {}", ollamaBaseUrl);
+        } else if (remoteEnabled && ollamaRemoteUrl != null && !ollamaRemoteUrl.isEmpty()) {
+            // 检查远程是否在线
+            boolean remoteOnline = checkOllamaOnline(ollamaRemoteUrl);
+            if (remoteOnline) {
+                currentOllamaUrl = ollamaRemoteUrl;
+                log.info("Local Ollama offline, switched to remote: {}", ollamaRemoteUrl);
+            } else {
+                log.warn("Both local and remote Ollama are offline");
+                currentOllamaUrl = ollamaBaseUrl; // 默认使用本地
+            }
+        } else {
+            currentOllamaUrl = ollamaBaseUrl;
+        }
+        
+        return currentOllamaUrl;
+    }
+    
+    /**
+     * 检查指定 URL 的 Ollama 是否在线
+     */
+    private boolean checkOllamaOnline(String url) {
+        try {
+            WebClient webClient = webClientBuilder.baseUrl(url).build();
+            webClient.get()
+                .uri("/api/tags")
+                .retrieve()
+                .toBodilessEntity()
+                .block(Duration.ofSeconds(3));
+            return true;
+        } catch (Exception e) {
+            log.debug("Ollama at {} is offline: {}", url, e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * 重置 Ollama URL（用于强制重新检测）
+     */
+    public void resetOllamaUrl() {
+        currentOllamaUrl = null;
+    }
     
     public AIModelsResponse getModels() {
         try {
+            String effectiveUrl = getEffectiveOllamaUrl();
             WebClient webClient = webClientBuilder
-                .baseUrl(ollamaBaseUrl)
+                .baseUrl(effectiveUrl)
                 .build();
             
             OllamaModelsResponse ollamaResponse = webClient.get()
@@ -75,8 +145,9 @@ public class AIService {
     }
     
     public StreamingResponseBody chatStream(AIChatRequest request) {
+        String effectiveUrl = getEffectiveOllamaUrl();
         WebClient webClient = webClientBuilder
-            .baseUrl(ollamaBaseUrl)
+            .baseUrl(effectiveUrl)
             .build();
         
         // Create request body for streaming
@@ -117,8 +188,9 @@ public class AIService {
     }
     
     public Map<String, Object> chatNonStream(AIChatRequest request) {
+        String effectiveUrl = getEffectiveOllamaUrl();
         WebClient webClient = webClientBuilder
-            .baseUrl(ollamaBaseUrl)
+            .baseUrl(effectiveUrl)
             .build();
         
         // Create request body for non-streaming
@@ -144,36 +216,42 @@ public class AIService {
     }
     
     public AIStatusResponse getStatus() {
-        try {
-            WebClient webClient = webClientBuilder
-                .baseUrl(ollamaBaseUrl)
-                .build();
-            
-            webClient.get()
-                .uri("/api/tags")
-                .retrieve()
-                .toBodilessEntity()
-                .block(Duration.ofSeconds(5));
-            
-            AIStatusResponse status = new AIStatusResponse();
-            status.setStatus("connected");
-            status.setMessage("Ollama 服务运行正常");
-            return status;
-            
-        } catch (WebClientResponseException e) {
-            log.warn("Ollama API returned error: {}", e.getStatusCode());
-            AIStatusResponse status = new AIStatusResponse();
-            status.setStatus("disconnected");
-            status.setMessage("无法连接到 Ollama 服务");
-            status.setHint("请确保 Ollama 已安装并运行: ollama serve");
-            return status;
-        } catch (Exception e) {
-            log.warn("Failed to connect to Ollama service: {}", e.getMessage());
-            AIStatusResponse status = new AIStatusResponse();
-            status.setStatus("disconnected");
-            status.setMessage("无法连接到 Ollama 服务");
-            status.setHint("请确保 Ollama 已安装并运行: ollama serve");
-            return status;
+        AIStatusResponse status = new AIStatusResponse();
+        
+        // 检查本地 Ollama
+        boolean localOnline = checkOllamaOnline(ollamaBaseUrl);
+        boolean remoteOnline = false;
+        
+        if (remoteEnabled && ollamaRemoteUrl != null && !ollamaRemoteUrl.isEmpty()) {
+            remoteOnline = checkOllamaOnline(ollamaRemoteUrl);
         }
+        
+        if (localOnline) {
+            status.setStatus("connected");
+            status.setMessage("本地 Ollama 服务运行正常");
+            status.setUrl(ollamaBaseUrl);
+            currentOllamaUrl = ollamaBaseUrl;
+        } else if (remoteOnline) {
+            status.setStatus("connected");
+            status.setMessage("本地 Ollama 离线，已切换到远程服务");
+            status.setUrl(ollamaRemoteUrl);
+            status.setHint("远程模式运行中");
+            currentOllamaUrl = ollamaRemoteUrl;
+        } else {
+            status.setStatus("disconnected");
+            status.setMessage("无法连接到 Ollama 服务");
+            if (remoteEnabled && ollamaRemoteUrl != null && !ollamaRemoteUrl.isEmpty()) {
+                status.setHint("请检查本地服务 (" + ollamaBaseUrl + ") 或配置远程服务 (" + ollamaRemoteUrl + ")");
+            } else {
+                status.setHint("请确保 Ollama 已安装并运行: ollama serve");
+            }
+            currentOllamaUrl = null;
+        }
+        
+        status.setLocalOnline(localOnline);
+        status.setRemoteOnline(remoteOnline);
+        status.setRemoteEnabled(remoteEnabled);
+        
+        return status;
     }
 }

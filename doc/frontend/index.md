@@ -12,25 +12,36 @@
 
 ## 🏗️ Architecture Overview
 
-The frontend is built with **Vue 3.4** using the Composition API and follows modern TypeScript best practices.
+The frontend is built with **Vue 3.4.15** using the Composition API and follows modern TypeScript best practices.
 
 ### Technology Stack
-- **Framework**: Vue 3.4 + Composition API (`<script setup>`)
-- **Language**: TypeScript 5.3 (strict mode enabled)
-- **Build Tool**: Vite 5.0
+- **Framework**: Vue 3.4.15 + Composition API (`<script setup>`)
+- **Language**: TypeScript 5.3.3 (strict mode enabled)
+- **Build Tool**: Vite 5.0.11
 - **State Management**: Pinia 2.1
 - **Routing**: Vue Router 4.2
 - **Styling**: Tailwind CSS 3.4 + custom design system
 - **HTTP Client**: Axios 1.6 with JWT interceptor
-- **Charts**: Chart.js 4.4 + vue-chartjs
+- **Charts**: Chart.js 4.4 + vue-chartjs + lightweight-charts 5.1.0
+- **Trading**: trading-signals 7.4.3
+- **WebSocket**: STOMP over WebSocket
 - **Markdown**: marked 18.0 + DOMPurify 3.3
 
 ### Component Structure
-- **Views**: 9 page-level components in `src/views/`
-- **Components**: 4 reusable UI components in `src/components/`
+- **Views**: 11 page-level components in `src/views/`
+  - AIView, ArticleDetailView, ArticlesView, GoldPriceView, HomeView, LoginView, ProfileView, RegisterView, ToolsView, TweetsView, XiaomiView
+- **Components**: 8 reusable UI components in `src/components/`
+  - AIChat, FooterBar, IndicatorOverlay, KLineChart, NavigationBar, PriceChart, TweetCard, TweetMetricsChart
 - **Stores**: Pinia store for authentication state in `src/stores/`
-- **API Modules**: 5 feature-based API services in `src/api/`
+  - auth.ts
+- **Composables**: Custom Vue composables in `src/composables/`
+  - useTweetWebSocket.ts
+- **API Modules**: 8 feature-based API services in `src/api/`
+  - ai.ts, article.ts, auth.ts, goldPrice.ts, tools.ts, tradingApi.ts, tweets.ts, xiaomi.ts
 - **Utilities**: Shared functions and HTTP client in `src/utils/`
+  - request.ts, format.ts
+- **Types**: TypeScript type definitions in `src/types/`
+  - tweet.ts
 
 ## 🔧 Build and Development
 

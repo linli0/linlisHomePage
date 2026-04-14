@@ -58,22 +58,87 @@ Based on Tailwind's spacing scale with custom additions:
 - `.badge-gold`: Gold color variant
 - Used for status indicators, tags, categories
 
+### New Components
+
+#### KLineChart
+Candlestick chart component using lightweight-charts library for financial data visualization.
+
+- **Color Scheme**: 
+  - Green (`#10b981`) for bullish candles (price increase)
+  - Red (`#ef4444`) for bearish candles (price decrease)
+- **Dark Mode Support**: Automatically adapts colors for dark mode with appropriate contrast
+- **Responsive Design**: Adapts to container size with mobile-first approach
+- **Interactivity**: Hover tooltips, zoom functionality, time period selection
+- **Performance**: Optimized for real-time data updates
+
+#### IndicatorOverlay
+Non-visual overlay component for adding technical indicator lines to KLineChart.
+
+- **Integration**: Works seamlessly with KLineChart component
+- **Multiple Indicator Types**: Supports SMA, EMA, RSI, MACD, Bollinger Bands
+- **Customizable**: Configurable colors, line styles, and parameters
+- **Layer Management**: Multiple overlays can be stacked and toggled independently
+- **Performance**: Lightweight implementation with minimal overhead
+
+#### TweetCard
+Social media post display card with platform-specific styling.
+
+- **Platform Styling**:
+  - Twitter/X: Blue accent (`#1d9bf0`) with white/light backgrounds
+  - Truth Social: Red accent (`#ff4500`) with appropriate theming
+- **Content Structure**:
+  - Avatar: Circular user profile image
+  - Header: Username, handle, timestamp, platform indicator
+  - Body: Post content with proper text formatting
+  - Metrics: Likes, retweets/shares, comments counts
+- **Mobile-First Responsive**: Optimized for all screen sizes with touch-friendly interactions
+- **Accessibility**: Proper ARIA labels and keyboard navigation support
+
+#### TweetMetricsChart
+Bar chart component for visualizing social media engagement statistics.
+
+- **Engagement Metrics**: Displays likes, shares, comments, impressions
+- **Platform Comparison**: Side-by-side comparison between different platforms
+- **Time Series**: Historical performance tracking over selected periods
+- **Interactive**: Clickable bars for detailed metrics, hover tooltips
+- **Responsive**: Adapts layout for mobile (vertical) vs desktop (horizontal)
+
 ## ✨ Animations and Transitions
 
 ### Custom Animations
-- **Float**: Gentle floating animation for hero elements
-- **Gradient**: Animated gradient backgrounds for visual interest
-- **Shimmer**: Loading skeleton animations
-- **Slide-up**: Smooth entrance animations for content
-- **Fade-in**: Opacity-based transitions
-- **Scale-in**: Size-based entrance animations
-- **Bounce-subtle**: Subtle bounce effects for interactions
-- **Wiggle**: Playful wiggle animations for feedback
+- **Float**: Gentle floating animation for hero elements (`float 6s ease-in-out infinite`)
+- **Float-slow**: Slower floating variant (`float 8s ease-in-out infinite`)
+- **Gradient**: Animated gradient backgrounds for visual interest (`gradient 8s ease infinite`)
+- **Shimmer**: Loading skeleton animations (`shimmer 2s linear infinite`)
+- **Slide-up**: Smooth entrance animations for content (`slideUp 0.5s ease-out`)
+- **Slide-down**: Smooth exit animations for content (`slideDown 0.5s ease-out`)
+- **Fade-in**: Opacity-based transitions (`fadeIn 0.5s ease-out`)
+- **Scale-in**: Size-based entrance animations (`scaleIn 0.3s ease-out`)
+- **Bounce-subtle**: Subtle bounce effects for interactions (`bounceSubtle 2s ease-in-out infinite`)
+- **Spin-slow**: Slow rotation animation (`spin 3s linear infinite`)
+- **Wiggle**: Playful wiggle animations for feedback (`wiggle 1s ease-in-out infinite`)
 
 ### Transition Timing
 - **Default**: 300ms ease-in-out
 - **Fast**: 150ms for immediate feedback
 - **Slow**: 500ms for dramatic entrances
+- **Bounce-in**: `cubic-bezier(0.68, -0.55, 0.265, 1.55)` for elastic effects
+- **Smooth**: `cubic-bezier(0.4, 0, 0.2, 1)` for natural motion
+
+## 🌑 Custom Shadows
+
+### Soft Shadows
+- **soft**: Subtle drop shadow (`0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)`)
+- **soft-lg**: Larger soft shadow (`0 10px 40px -10px rgba(0, 0, 0, 0.1), 0 2px 10px -2px rgba(0, 0, 0, 0.04)`)
+- **soft-xl**: Extra large soft shadow (`0 20px 60px -15px rgba(0, 0, 0, 0.15)`)
+
+### Glow Effects
+- **glow**: Primary color glow (`0 0 20px rgba(14, 165, 233, 0.3)`)
+- **glow-gold**: Gold accent glow (`0 0 20px rgba(245, 158, 11, 0.3)`)
+- **glow-accent**: Accent color glow (`0 0 20px rgba(217, 70, 239, 0.3)`)
+
+### Inner Shadows
+- **inner-soft**: Subtle inner shadow for depth (`inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)`)
 
 ## 📱 Responsive Design Patterns
 
@@ -104,7 +169,8 @@ Dark mode classes are applied to the `<html>` element via JavaScript.
 ## 📊 Data Visualization
 
 ### Charts
-- **Library**: Chart.js 4.4 + vue-chartjs wrapper
+- **Library**: Chart.js 4.4 + vue-chartjs wrapper (existing)
+- **New Library**: lightweight-charts for KLineChart component
 - **Styles**: Custom color schemes matching brand palette
 - **Interactivity**: Hover tooltips, click events
 - **Responsiveness**: Charts adapt to container size
@@ -114,6 +180,38 @@ Dark mode classes are applied to the `<html>` element via JavaScript.
 - **Change Indicators**: Color-coded arrows (green/red)
 - **Statistics**: High/low/average/volatility metrics
 - **Historical Data**: Interactive time period selection
+- **Candlestick Charts**: KLineChart for detailed price action analysis
+
+## 📱 Social Media Card Design Guidelines
+
+### Platform-Specific Design Principles
+
+#### Twitter/X Cards
+- **Primary Color**: Twitter blue (`#1d9bf0`)
+- **Background**: White/light gray with subtle borders
+- **Typography**: Clean, readable font with proper line height
+- **Metrics**: Heart (likes), Retweet, Comment icons with counts
+- **Verification**: Verified badge styling when applicable
+
+#### Truth Social Cards  
+- **Primary Color**: Truth Social red (`#ff4500`)
+- **Background**: Light background with red accents
+- **Typography**: Bold, attention-grabbing styling
+- **Metrics**: Like, Repost, Comment with platform-specific icons
+- **Branding**: Truth Social logo integration
+
+### Universal Card Requirements
+- **Avatar**: Circular, minimum 40px diameter on mobile
+- **Content Truncation**: Smart text truncation with "Read more" expand
+- **Media Support**: Image/video preview with proper aspect ratios
+- **Timestamp**: Relative time display (e.g., "2h ago")
+- **Accessibility**: Sufficient color contrast, keyboard navigable
+- **Performance**: Lazy loading of images and media
+
+### Responsive Behavior
+- **Mobile**: Single column, vertical layout, touch-friendly tap targets
+- **Tablet**: Enhanced layout with better spacing and larger elements  
+- **Desktop**: Multi-column potential, hover states, detailed metrics
 
 ## 🔧 Development Guidelines
 
@@ -169,9 +267,26 @@ theme: {
       }
     },
     animation: {
-      'float': 'float 3s ease-in-out infinite',
-      'gradient': 'gradient 8s linear infinite',
-      // ... other animations
+      'float': 'float 6s ease-in-out infinite',
+      'float-slow': 'float 8s ease-in-out infinite',
+      'gradient': 'gradient 8s ease infinite',
+      'shimmer': 'shimmer 2s linear infinite',
+      'slide-up': 'slideUp 0.5s ease-out',
+      'slide-down': 'slideDown 0.5s ease-out',
+      'fade-in': 'fadeIn 0.5s ease-out',
+      'scale-in': 'scaleIn 0.3s ease-out',
+      'bounce-subtle': 'bounceSubtle 2s ease-in-out infinite',
+      'spin-slow': 'spin 3s linear infinite',
+      'wiggle': 'wiggle 1s ease-in-out infinite',
+    },
+    boxShadow: {
+      'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
+      'soft-lg': '0 10px 40px -10px rgba(0, 0, 0, 0.1), 0 2px 10px -2px rgba(0, 0, 0, 0.04)',
+      'soft-xl': '0 20px 60px -15px rgba(0, 0, 0, 0.15)',
+      'glow': '0 0 20px rgba(14, 165, 233, 0.3)',
+      'glow-gold': '0 0 20px rgba(245, 158, 11, 0.3)',
+      'glow-accent': '0 0 20px rgba(217, 70, 239, 0.3)',
+      'inner-soft': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)',
     }
   }
 }

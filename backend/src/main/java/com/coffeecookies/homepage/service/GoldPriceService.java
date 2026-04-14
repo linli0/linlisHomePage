@@ -102,14 +102,21 @@ public class GoldPriceService {
     @Scheduled(fixedRate = 60000) // Every minute
     @Transactional
     public void updateGoldPrice() {
-        // 如果未启用 MetalpriceAPI，跳过更新
-        if (!metalpriceApiEnabled) {
-            log.debug("MetalpriceAPI is disabled, skipping gold price update");
-            return;
-        }
-        
         try {
-            BigDecimal newPrice = fetchGoldPriceFromAPI();
+            BigDecimal newPrice;
+            
+            // 如果启用 MetalpriceAPI，获取真实价格
+            if (metalpriceApiEnabled && metalpriceApiKey != null && !metalpriceApiKey.isEmpty()) {
+                newPrice = fetchGoldPriceFromAPI();
+                log.info("Fetched gold price from MetalpriceAPI: {} USD", newPrice);
+            } else {
+                // 否则生成模拟价格（基于上次价格小幅波动）
+                GoldPrice lastPrice = goldPriceRepository.findTopByOrderByRecordedAtDesc().orElse(null);
+                BigDecimal basePrice = lastPrice != null ? lastPrice.getPriceUsd() : new BigDecimal("2050.00");
+                double variation = (Math.random() - 0.48) * 10; // 轻微波动
+                newPrice = basePrice.add(BigDecimal.valueOf(variation)).setScale(2, RoundingMode.HALF_UP);
+                log.debug("Generated mock gold price: {} USD (MetalpriceAPI disabled)", newPrice);
+            }
             
             GoldPrice lastPrice = goldPriceRepository.findTopByOrderByRecordedAtDesc().orElse(null);
             BigDecimal changeAmount = BigDecimal.ZERO;

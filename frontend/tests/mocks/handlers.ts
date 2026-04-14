@@ -156,6 +156,39 @@ export const articleHandlers = [
         numberOfElements: 2
       }
     })
+  }),
+  
+  http.post(`${API_BASE}/articles`, async ({ request }) => {
+    const body = await request.json() as { title?: string; content?: string; summary?: string }
+    return HttpResponse.json({
+      code: 200,
+      message: 'Success',
+      data: {
+        id: 3,
+        title: body.title || 'New Article',
+        content: body.content || '',
+        summary: body.summary || '',
+        coverImage: '',
+        published: true,
+        viewCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        category: null,
+        tags: [],
+        author: { id: 1, username: 'admin', displayName: 'Admin', avatar: null }
+      }
+    })
+  }),
+  
+  http.get(`${API_BASE}/categories`, () => {
+    return HttpResponse.json({
+      code: 200,
+      message: 'Success',
+      data: [
+        { id: 1, name: 'Technology', description: 'Tech articles', icon: 'fas fa-laptop', sortOrder: 1 },
+        { id: 2, name: 'Finance', description: 'Finance articles', icon: 'fas fa-chart-line', sortOrder: 2 }
+      ]
+    })
   })
 ]
 
@@ -178,7 +211,14 @@ export const aiHandlers = [
     return HttpResponse.json({
       code: 200,
       message: 'Success',
-      data: { status: 'connected' }
+      data: { 
+        status: 'connected',
+        message: '本地 Ollama 服务运行正常',
+        url: 'http://localhost:11434',
+        localOnline: true,
+        remoteOnline: false,
+        remoteEnabled: false
+      }
     })
   }),
   
@@ -359,23 +399,105 @@ export const xiaomiHandlers = [
 // Trading handlers
 export const tradingHandlers = [
   http.get(`${API_BASE}/quant/strategies`, () => {
-    return HttpResponse.json({ code: 200, message: 'Success', data: [] })
+    return HttpResponse.json({
+      code: 200,
+      message: 'Success',
+      data: [
+        {
+          id: 'str-1',
+          name: 'Momentum Strategy',
+          description: 'A momentum-based trading strategy',
+          type: 'momentum',
+          status: 'ACTIVE',
+          parameters: {},
+          symbol: 'GOLD',
+          totalReturn: 15.5,
+          sharpeRatio: 1.2,
+          maxDrawdown: 5.0,
+          winRate: 65.0,
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-15'
+        },
+        {
+          id: 'str-2',
+          name: 'Mean Reversion',
+          description: 'A mean reversion strategy',
+          type: 'mean_reversion',
+          status: 'PAUSED',
+          parameters: {},
+          symbol: 'BTC',
+          totalReturn: -2.5,
+          sharpeRatio: 0.8,
+          maxDrawdown: 10.0,
+          winRate: 45.0,
+          createdAt: '2024-01-02',
+          updatedAt: '2024-01-16'
+        }
+      ]
+    })
   }),
   
   http.get(`${API_BASE}/quant/strategies/:id`, ({ params }) => {
     return HttpResponse.json({
       code: 200,
       message: 'Success',
-      data: { id: params.id, name: 'Strategy', type: 'momentum', status: 'active' }
+      data: { 
+        id: params.id, 
+        name: 'Momentum Strategy', 
+        type: 'momentum', 
+        status: 'ACTIVE',
+        totalReturn: 15.5,
+        sharpeRatio: 1.2,
+        maxDrawdown: 5.0,
+        winRate: 65.0
+      }
     })
   }),
   
   http.get(`${API_BASE}/quant/signals`, () => {
-    return HttpResponse.json({ code: 200, message: 'Success', data: [] })
+    return HttpResponse.json({
+      code: 200,
+      message: 'Success',
+      data: [
+        {
+          id: 'sig-1',
+          strategyId: 'str-1',
+          strategyName: 'Momentum Strategy',
+          symbol: 'GOLD',
+          signalType: 'BUY',
+          price: 2500.50,
+          targetPrice: 2600.00,
+          stopLoss: 2450.00,
+          confidence: 85.0,
+          reason: 'Strong momentum detected',
+          executed: false,
+          executedAt: null,
+          createdAt: '2024-01-15'
+        }
+      ]
+    })
   }),
   
   http.get(`${API_BASE}/quant/backtest/:strategyId`, () => {
-    return HttpResponse.json({ code: 200, message: 'Success', data: [] })
+    return HttpResponse.json({
+      code: 200,
+      message: 'Success',
+      data: {
+        id: 'bt-1',
+        strategyId: 'str-1',
+        strategyName: 'Momentum Strategy',
+        startDate: '2023-01-01',
+        endDate: '2023-12-31',
+        totalReturn: 15.5,
+        sharpeRatio: 1.2,
+        maxDrawdown: 5.0,
+        winRate: 65.0,
+        totalTrades: 100,
+        profitTrades: 65,
+        lossTrades: 35,
+        createdAt: '2024-01-01'
+      }
+    })
   }),
   
   http.post(`${API_BASE}/quant/backtest/:strategyId`, () => {
@@ -383,7 +505,14 @@ export const tradingHandlers = [
   }),
   
   http.get(`${API_BASE}/quant/indicators`, () => {
-    return HttpResponse.json({ code: 200, message: 'Success', data: [] })
+    return HttpResponse.json({
+      code: 200,
+      message: 'Success',
+      data: [
+        { date: '2024-01-01', value: 2500 },
+        { date: '2024-01-02', value: 2510 }
+      ]
+    })
   })
 ]
 

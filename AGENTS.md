@@ -19,12 +19,13 @@
 | Task | Location | Notes |
 |------|----------|-------|
 | 修改 API 端点 | `backend/src/.../controller/` | Spring Boot 控制器 |
-| 前端页面 | `frontend/src/views/` | 9 个 View 组件 |
-| 前端组件 | `frontend/src/components/` | 4 个可复用组件 |
+| 前端页面 | `frontend/src/views/` | 11 个 View 组件 |
+| 前端组件 | `frontend/src/components/` | 8 个可复用组件 |
 | API 封装 | `frontend/src/api/*.ts` | 按模块分文件 |
 | 状态管理 | `frontend/src/stores/auth.ts` | Pinia + Composition API |
 | 路由配置 | `frontend/src/router/index.ts` | 导航守卫 + 懒加载 |
 | HTTP 拦截器 | `frontend/src/utils/request.ts` | JWT 注入 + 401 处理 |
+| Composables | `frontend/src/composables/*.ts` | Vue 3 组合式函数 |
 | Spring Boot 后端 | `backend/AGENTS.md` | **后端详细文档** |
 | Vue 详细规范 | `frontend/AGENTS.md` | **前端详细文档** |
 
@@ -53,16 +54,17 @@ coffeeCookie'sHomePage/
 ### 后端 (Spring Boot)
 | 层级 | 技术 | 说明 |
 |------|------|------|
-| 框架 | Spring Boot 3.2 + Java 17 | Maven 项目，`pom.xml` 管理依赖 |
+| 框架 | Spring Boot 3.2.0 + Java 17 | Maven 项目，`pom.xml` 管理依赖 |
 | 数据库 | H2（开发）/ MySQL 8（生产）| JPA + Hibernate，`ddl-auto: update` |
 | 安全 | Spring Security + JJWT 0.12.3 | JWT Bearer Token，有效期 24 小时 |
 | 构建 | Maven 3.8+ | `mvn clean package -DskipTests` |
+| 实时通信 | WebSocket + WebFlux | 实时数据推送和响应式编程 |
 
 ### 前端 (Vue 3)
 | 层级 | 技术 | 说明 |
 |------|------|------|
-| 框架 | Vue 3.4+ + TypeScript | Composition API 风格 |
-| 构建 | Vite 5.x | 开发端口 3000，构建输出到 `frontend/dist/` |
+| 框架 | Vue 3.4.15 + TypeScript 5.3.3 | Composition API 风格 |
+| 构建 | Vite 5.0.11 | 开发端口 3000，构建输出到 `frontend/dist/` |
 | 状态 | Pinia 2.x | 使用 Composition API 风格的 Store |
 | 路由 | Vue Router 4.x | 历史模式路由 |
 | 样式 | Tailwind CSS 3.x | 自定义 `primary` 和 `gold` 色板，支持 `darkMode: 'class'` |
@@ -213,7 +215,7 @@ nohup $CLOUDFLARED tunnel --url http://localhost:8080 > tunnel.log 2>&1 &
 ## TESTING FRAMEWORK
 
 ### Backend Testing (Spring Boot)
-- **Framework**: JUnit 5 + Spring Boot Test + Testcontainers
+- **Framework**: JUnit 5 + Spring Boot Test + Testcontainers 1.19.7
 - **Dependencies**: Added Testcontainers, MySQL container, JUnit Jupiter
 - **Test Structure**: 
   - `src/test/java/com/coffeecookies/homepage/` - Base test classes
@@ -226,7 +228,7 @@ nohup $CLOUDFLARED tunnel --url http://localhost:8080 > tunnel.log 2>&1 &
 - **Commands**: `mvn test`, `mvn test jacoco:report`
 
 ### Frontend Testing (Vue 3)
-- **Framework**: Vitest + Vue Test Utils + MSW + Playwright
+- **Framework**: Vitest + Vue Test Utils + MSW + Playwright 1.43.0
 - **Dependencies**: Added Vitest, Vue Test Utils, MSW, Playwright, happy-dom
 - **Test Structure**:
   - `tests/setup.ts` - Global test setup with MSW

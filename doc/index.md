@@ -41,6 +41,9 @@ CoffeeCookie's HomePage is a full-stack personal homepage application featuring:
 - **🛠️ Utility Tools**: JSON formatter, Base64 encoder/decoder, hash calculator, QR code generator
 - **💬 AI Chat**: Local LLM integration with Ollama for AI conversations
 - **🔐 User Authentication**: JWT-based authentication with role-based access control
+- **📊 Tweets Monitor**: Real-time Twitter/Truth Social monitoring with WebSocket integration
+- **🔊 Xiaomi Speaker**: Text-to-speech and AI chat integration with Xiaomi smart speakers
+- **📈 Quant Trading**: Backtesting framework, trading signals, and technical indicators analysis
 
 ## 📋 Default Credentials
 

@@ -13,6 +13,86 @@
         </p>
       </div>
 
+      <!-- 创建文章按钮 (管理员可见) -->
+      <div v-if="authStore.isAdmin" class="mb-8">
+        <button @click="showCreateModal = true" class="btn-primary flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          创建新文章
+        </button>
+      </div>
+
+      <!-- 创建文章模态框 -->
+      <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white dark:bg-surface-900 rounded-2xl shadow-soft-lg max-w-2xl w-full mx-4 p-8 max-h-[90vh] overflow-y-auto">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-surface-900 dark:text-white">创建新文章</h2>
+            <button @click="showCreateModal = false" class="p-2 rounded-xl hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors">
+              <svg class="w-6 h-6 text-surface-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          <form @submit.prevent="createArticle" class="space-y-6">
+            <div>
+              <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">标题 *</label>
+              <input v-model="newArticle.title" type="text" required class="input" placeholder="文章标题" />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">摘要</label>
+              <textarea v-model="newArticle.summary" rows="2" class="input resize-none" placeholder="简短摘要..."></textarea>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">内容 *</label>
+              <textarea v-model="newArticle.content" rows="10" required class="input resize-none font-mono" placeholder="文章内容 (支持 Markdown)..."></textarea>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">分类</label>
+                <select v-model="newArticle.categoryId" class="input">
+                  <option value="">无分类</option>
+                  <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">封面图 URL</label>
+                <input v-model="newArticle.coverImage" type="url" class="input" placeholder="https://..." />
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input v-model="newArticle.published" type="checkbox" class="w-4 h-4 rounded border-surface-300 text-primary-500 focus:ring-primary-500 dark:border-surface-600 dark:bg-surface-800" />
+                <span class="text-sm text-surface-700 dark:text-surface-300">立即发布</span>
+              </label>
+            </div>
+            
+            <div class="flex gap-3 pt-4">
+              <button type="submit" :disabled="creating" class="btn-primary flex-1">
+                <span v-if="creating" class="flex items-center justify-center gap-2">
+                  <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  创建中...
+                </span>
+                <span v-else>创建文章</span>
+              </button>
+              <button type="button" @click="showCreateModal = false" class="btn-secondary flex-1">取消</button>
+            </div>
+            
+            <div v-if="createError" class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 rounded-xl text-sm">
+              {{ createError }}
+            </div>
+          </form>
+        </div>
+      </div>
+
       <div class="flex flex-wrap gap-3 mb-10">
         <button
           @click="selectedCategory = null"
@@ -163,13 +243,28 @@
 import { ref, onMounted, watch } from 'vue'
 import { articleApi, categoryApi, type Article, type Category } from '@/api/article'
 import { formatDate } from '@/utils/format'
+import { useAuthStore } from '@/stores/auth'
 
+const authStore = useAuthStore()
 const articles = ref<Article[]>([])
 const categories = ref<Category[]>([])
 const selectedCategory = ref<number | null>(null)
 const currentPage = ref(0)
 const totalPages = ref(0)
 const loading = ref(true)
+
+// 创建文章相关
+const showCreateModal = ref(false)
+const creating = ref(false)
+const createError = ref('')
+const newArticle = ref({
+  title: '',
+  content: '',
+  summary: '',
+  coverImage: '',
+  published: true,
+  categoryId: null as number | null
+})
 
 async function fetchArticles() {
   loading.value = true
@@ -203,4 +298,44 @@ onMounted(() => {
   fetchArticles()
   fetchCategories()
 })
+
+async function createArticle() {
+  if (!newArticle.value.title.trim() || !newArticle.value.content.trim()) {
+    createError.value = '标题和内容不能为空'
+    return
+  }
+  
+  creating.value = true
+  createError.value = ''
+  
+  try {
+    await articleApi.createArticle({
+      title: newArticle.value.title.trim(),
+      content: newArticle.value.content.trim(),
+      summary: newArticle.value.summary.trim() || newArticle.value.content.trim().slice(0, 200),
+      coverImage: newArticle.value.coverImage.trim() || '',
+      published: newArticle.value.published,
+      category: newArticle.value.categoryId ? { id: newArticle.value.categoryId } as Category : undefined
+    })
+    
+    // 重置表单
+    newArticle.value = {
+      title: '',
+      content: '',
+      summary: '',
+      coverImage: '',
+      published: true,
+      categoryId: null
+    }
+    showCreateModal.value = false
+    
+    // 刷新文章列表
+    await fetchArticles()
+  } catch (err: unknown) {
+    const e = err as { response?: { data?: { message?: string } } }
+    createError.value = e.response?.data?.message || '创建文章失败'
+  } finally {
+    creating.value = false
+  }
+}
 </script>

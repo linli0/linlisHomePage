@@ -9,7 +9,7 @@
           实用<span class="gradient-text">工具箱</span>
         </h1>
         <p class="text-lg text-surface-600 dark:text-surface-400 max-w-2xl">
-          开发者常用工具集合，提供 JSON 格式化、Base64 编解码、哈希计算、二维码生成等实用功能
+          开发者常用工具集合，提供 JSON 格式化、Base64 编解码、哈希计算、二维码生成等实用功能，以及 AI 智能对话
         </p>
       </div>
 
@@ -332,6 +332,23 @@
             </div>
           </div>
         </div>
+
+        <!-- AI 对话工具 -->
+        <div class="card-hover p-8 lg:col-span-2">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="relative">
+              <div class="absolute inset-0 bg-accent-400/20 rounded-xl blur-lg"></div>
+              <div class="relative w-12 h-12 bg-gradient-to-br from-accent-400 to-accent-600 rounded-xl flex items-center justify-center shadow-lg">
+                <span class="text-2xl">🤖</span>
+              </div>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-surface-900 dark:text-white">AI 智能对话</h2>
+              <p class="text-sm text-surface-500 dark:text-surface-400">基于本地/远程 Ollama 模型</p>
+            </div>
+          </div>
+          <AIChat />
+        </div>
       </div>
     </div>
   </div>
@@ -340,6 +357,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { toolsApi, type TimestampResult } from '@/api/tools'
+import AIChat from '@/components/AIChat.vue'
 
 const jsonInput = ref('')
 const jsonOutput = ref('')

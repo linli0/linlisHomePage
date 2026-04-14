@@ -74,16 +74,40 @@
               工具箱
             </router-link>
             <router-link 
-              to="/ai" 
+              to="/tweets" 
               :class="[
                 'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-1.5',
-                $route.path === '/ai' 
-                  ? ((isScrolled || !onHeroPage) ? 'bg-accent-100 dark:bg-accent-900/30 text-accent-600 dark:text-accent-400' : 'bg-white/20 text-white')
+                $route.path === '/tweets' 
+                  ? ((isScrolled || !onHeroPage) ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-white/20 text-white')
                   : ((isScrolled || !onHeroPage) ? 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800' : 'text-white/80 hover:text-white hover:bg-white/10')
               ]"
             >
-              <span>🤖</span>
-              <span>AI</span>
+              <span>🐦</span>
+              <span>推特</span>
+            </router-link>
+            <router-link 
+              to="/xiaomi" 
+              :class="[
+                'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-1.5',
+                $route.path === '/xiaomi' 
+                  ? ((isScrolled || !onHeroPage) ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400' : 'bg-white/20 text-white')
+                  : ((isScrolled || !onHeroPage) ? 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800' : 'text-white/80 hover:text-white hover:bg-white/10')
+              ]"
+            >
+              <span>🔊</span>
+              <span>小爱</span>
+            </router-link>
+            <router-link 
+              to="/quant" 
+              :class="[
+                'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-1.5',
+                $route.path === '/quant' 
+                  ? ((isScrolled || !onHeroPage) ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'bg-white/20 text-white')
+                  : ((isScrolled || !onHeroPage) ? 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800' : 'text-white/80 hover:text-white hover:bg-white/10')
+              ]"
+            >
+              <span>📊</span>
+              <span>量化</span>
             </router-link>
           </div>
         </div>
@@ -246,7 +270,9 @@ const menuItems = [
   { name: '金价', path: '/gold', icon: '💰' },
   { name: 'Wiki', path: '/articles' },
   { name: '工具箱', path: '/tools' },
-  { name: 'AI', path: '/ai', icon: '🤖' }
+  { name: '推特', path: '/tweets', icon: '🐦' },
+  { name: '小爱', path: '/xiaomi', icon: '🔊' },
+  { name: '量化', path: '/quant', icon: '📊' }
 ]
 
 function handleLogout() {

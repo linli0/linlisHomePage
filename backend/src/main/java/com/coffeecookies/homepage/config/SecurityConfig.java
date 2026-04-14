@@ -67,7 +67,7 @@ public class SecurityConfig {
                             .requestMatchers("/api/ai/status").permitAll()
                             .requestMatchers("/h2-console/**").permitAll()
                             .requestMatchers("/actuator/health").permitAll()
-                            .requestMatchers("GET", "/", "/index.html", "/assets/**").permitAll()
+                            .requestMatchers("GET", "/", "/index.html", "/assets/**", "/vite.svg", "/favicon.ico", "/*.svg", "/*.ico", "/*.png", "/*.jpg", "/*.json", "/*.xml", "/robots.txt").permitAll()
                             .anyRequest().authenticated()
                 );
 

@@ -2,13 +2,13 @@
 
 > 主后端实现。Spring Boot 全栈后端服务。
 
-**Generated:** 2026-04-08
+**Generated:** 2026-04-14
 
 ***
 
 ## OVERVIEW
 
-Spring Boot 主后端。分层架构：Controller → Service → Repository → Entity。JWT 认证 + Spring Security。
+Spring Boot 主后端。分层架构：Controller → Service → Repository → Entity。JWT 认证 + Spring Security + WebSocket + WebFlux。
 
 **状态**: 主后端实现，端口 8080，使用 H2（开发）或 MySQL（生产）数据库。
 
@@ -16,16 +16,15 @@ Spring Boot 主后端。分层架构：Controller → Service → Repository →
 
 ## WHERE TO LOOK
 
-| Task | Location                                    |
-| ---- | ------------------------------------------- |
-| 控制器  | `src/main/java/.../controller/*.java` (6 个) |
-| 服务层  | `src/main/java/.../service/*.java` (6 个)    |
-| 数据访问 | `src/main/java/.../repository/*.java` (6 个) |
-| 实体类  | `src/main/java/.../entity/*.java` (6 个)     |
-| DTO  | `src/main/java/.../dto/*.java` (11 个)       |
-| 安全配置 | `src/main/java/.../security/*.java` (5 个)   |
-| 应用入口 | `src/main/java/.../Application.java`        |
-| 配置文件 | `src/main/resources/application.yml`        |
+| Task | Location | Notes |
+|------|----------|-------|
+| 修改 API 端点 | `src/main/java/.../controller/*.java` | Spring Boot 控制器 (10个) |
+| Service 层 | `src/main/java/.../service/*.java` | 业务逻辑层 (15个) |
+| Repository 层 | `src/main/java/.../repository/*.java` | 数据访问层 (11个) |
+| 实体类 | `src/main/java/.../entity/*.java` | JPA 实体 (12个) |
+| DTO | `src/main/java/.../dto/*.java` | 数据传输对象 (29个) |
+| 配置类 | `src/main/java/.../config/*.java` | 配置类 (6个, 包括WebSocketConfig) |
+| 安全组件 | `src/main/java/.../security/*.java` | JWT组件 (5个) |
 
 ***
 
@@ -33,14 +32,19 @@ Spring Boot 主后端。分层架构：Controller → Service → Repository →
 
 ```
 com.coffeecookies.homepage/
-├── config/          # DataInitializer
-├── controller/      # REST API (Auth, GoldPrice, Article, Tool, Category, Tag)
+├── config/          # DataInitializer, WebSocketConfig
+├── controller/      # REST API (Auth, GoldPrice, Article, Tool, Category, Tag, Trading, Tweet, XiaomiSpeaker)
 ├── dto/            # Request/Response DTOs
-├── entity/         # JPA 实体
-├── repository/     # Spring Data JPA
+├── entity/         # JPA 实体 (including Trading entities)
+├── repository/     # Spring Data JPA (including Trading repositories)
 ├── security/       # JWT + Spring Security
-└── service/        # 业务逻辑
+└── service/        # 业务逻辑 (BacktestingService, SignalGenerationService, TechnicalIndicatorService, TruthSocialService, TweetPollingService, TweetWebSocketService, TwitterStreamService)
 ```
+
+**New Technologies:**
+- **WebSocket (STOMP)** for real-time updates
+- **WebFlux** for reactive programming  
+- **ZXing** for QR code generation
 
 ***
 
@@ -178,8 +182,10 @@ src/test/java/com/coffeecookies/homepage/
 ### Dependencies
 - **Test Framework**: JUnit 5 + Spring Boot Test
 - **Mocking**: Mockito  
-- **Integration Testing**: Testcontainers (MySQL container)
+- **Integration Testing**: Testcontainers 1.19.7 (MySQL container)
 - **Coverage**: JaCoCo
+- **WebSocket Testing**: STOMP over WebSocket testing considerations
+- **Reactive Testing**: WebFlux reactive testing considerations
 
 ### Commands
 ```bash
@@ -202,6 +208,8 @@ mvn test -Dspring.profiles.active=testcontainers
 - **Repository Tests**: JPA repositories with Testcontainers
 - **Security Tests**: JWT validation and endpoint permissions
 - **Scheduled Task Tests**: Timer-based functionality
+- **WebSocket Tests**: Real-time communication testing
+- **Reactive Tests**: WebFlux stream processing validation
 
 ## COMMANDS
 
@@ -236,6 +244,9 @@ mvn test
 - **定时任务**: `@EnableScheduling` + `@Scheduled` (GoldPriceService)
 - **CORS**: 允许所有来源（生产环境需限制）
 - **MetalpriceAPI 集成**: 支持真实金价数据，通过环境变量配置
+- **WebSocket**: STOMP协议实现实时通信
+- **WebFlux**: Reactive编程支持异步处理
+- **ZXing**: QR码生成库集成
 
 ***
 
@@ -296,4 +307,3 @@ metalpriceapi:
 - **日志监控**: 查看日志了解 API 调用状态
 - **生产环境**: 必须启用真实数据，系统不支持模拟数据
 - **无降级机制**: API 不可用时不会自动降级，必须确保 API 可用
-

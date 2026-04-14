@@ -46,13 +46,12 @@ const router = createRouter({
       component: () => import('@/views/XiaomiView.vue'),
       meta: { requiresAuth: true }
     },
-    // TODO: QuantView.vue 待实现
-    // {
-    //   path: '/quant',
-    //   name: 'QuantTrading',
-    //   component: () => import('@/views/QuantView.vue'),
-    //   meta: { requiresAuth: true }
-    // },
+    {
+      path: '/quant',
+      name: 'QuantTrading',
+      component: () => import('@/views/QuantView.vue'),
+      meta: { requiresAuth: true }
+    },
     {
       path: '/login',
       name: 'Login',
