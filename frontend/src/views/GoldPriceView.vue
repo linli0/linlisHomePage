@@ -276,18 +276,73 @@ async function refreshData() {
   refreshing.value = false
 }
 
-let refreshInterval: number | null = null
+// Smart refresh with visibility awareness and idle callback
+// Performance optimization: Only refresh when tab is visible and user is idle
+let refreshTimer: number | null = null
+let idleCallbackId: number | null = null
+const REFRESH_INTERVAL = 60000 // 60 seconds
+const isVisible = ref(true)
+
+// Handle tab visibility changes - pause refresh when tab is hidden
+const handleVisibilityChange = () => {
+  isVisible.value = document.visibilityState === 'visible'
+  
+  if (isVisible.value) {
+    // Tab became visible - refresh immediately if data might be stale
+    scheduleRefresh()
+  } else {
+    // Tab hidden - cancel pending refreshes to save resources
+    cancelScheduledRefresh()
+  }
+}
+
+// Schedule refresh using requestIdleCallback for better performance
+const scheduleRefresh = () => {
+  if (!isVisible.value) return
+  
+  // Clear any existing timer
+  if (refreshTimer) {
+    clearTimeout(refreshTimer)
+    refreshTimer = null
+  }
+  
+  // Use requestIdleCallback for non-urgent background updates
+  // This ensures refresh happens during idle periods, not during user interactions
+  if ('requestIdleCallback' in window) {
+    idleCallbackId = window.requestIdleCallback(() => {
+      fetchData()
+      scheduleRefresh()
+    }, { timeout: REFRESH_INTERVAL })
+  } else {
+    // Fallback to setTimeout for browsers without requestIdleCallback
+    refreshTimer = window.setTimeout(() => {
+      fetchData()
+      scheduleRefresh()
+    }, REFRESH_INTERVAL)
+  }
+}
+
+// Cancel all scheduled refreshes
+const cancelScheduledRefresh = () => {
+  if (refreshTimer) {
+    clearTimeout(refreshTimer)
+    refreshTimer = null
+  }
+  if (idleCallbackId && 'cancelIdleCallback' in window) {
+    window.cancelIdleCallback(idleCallbackId)
+    idleCallbackId = null
+  }
+}
 
 onMounted(() => {
   fetchData()
-  refreshInterval = window.setInterval(() => {
-    fetchData()
-  }, 60000)
+  // Add visibility listener for smart refresh
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+  scheduleRefresh()
 })
 
 onUnmounted(() => {
-  if (refreshInterval) {
-    clearInterval(refreshInterval)
-  }
+  cancelScheduledRefresh()
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 </script>
