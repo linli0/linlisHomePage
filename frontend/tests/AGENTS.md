@@ -2,6 +2,8 @@
 
 > Vue 3 test infrastructure: Vitest + Vue Test Utils + MSW + Playwright
 
+**Generated:** 2026-04-17
+
 ---
 
 ## OVERVIEW

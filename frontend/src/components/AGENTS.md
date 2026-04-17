@@ -2,6 +2,8 @@
 
 > 8 reusable Vue 3 components. All use `<script setup lang="ts">`.
 
+**Generated:** 2026-04-17
+
 ---
 
 ## WHERE TO LOOK

@@ -2,6 +2,8 @@
 
 > 12 page-level Vue 3 components using `<script setup lang="ts">` Composition API.
 
+**Generated:** 2026-04-17
+
 ---
 
 ## WHERE TO LOOK
