@@ -2,7 +2,7 @@
 
 > 全栈个人主页：金价追踪 + 技术文章 + 实用工具 + AI 对话
 
-**Generated:** 2026-04-15 | **Commit:** 5e7f0f7 | **Branch:** feature/frontend-redesign
+**Generated:** 2026-04-17 | **Commit:** 2b2dad7 | **Branch:** feature/frontend-redesign
 
 ---
 

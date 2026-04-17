@@ -2,6 +2,8 @@
 
 > Spring Boot 测试基础设施。分层测试：单元 → 集成 → E2E。
 
+**Generated:** 2026-04-17
+
 ---
 
 ## OVERVIEW

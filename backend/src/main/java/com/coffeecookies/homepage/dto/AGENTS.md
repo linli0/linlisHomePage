@@ -2,7 +2,7 @@
 
 > 29 data transfer objects. Largest module in backend.
 
-**Generated:** 2026-04-15
+**Generated:** 2026-04-17
 
 ---
 

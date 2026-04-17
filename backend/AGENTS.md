@@ -2,7 +2,7 @@
 
 > 主后端实现。Spring Boot 全栈后端服务。
 
-**Generated:** 2026-04-15
+**Generated:** 2026-04-17
 
 ***
 

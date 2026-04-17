@@ -2,7 +2,7 @@
 
 > 15 service classes. Business logic, external API integration, transaction management.
 
-**Generated:** 2026-04-15
+**Generated:** 2026-04-17
 
 ---
 
