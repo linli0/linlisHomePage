@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-surface-50 dark:bg-surface-950">
+  <div class="min-h-screen bg-cyber-void-950 scanlines bg-cyber-grid">
     <NavigationBar />
     <main>
       <router-view />

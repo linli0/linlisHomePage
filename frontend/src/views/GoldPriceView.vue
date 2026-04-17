@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-surface-50 dark:bg-surface-950 py-8">
+  <div class="min-h-screen bg-cyber-void-950 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col md:flex-row md:items-center justify-between mb-10">
         <div>
@@ -30,7 +30,7 @@
         </button>
       </div>
 
-      <div class="card p-6 mb-8">
+      <div class="card-cyber-glow p-6 mb-8">
         <h2 class="text-lg font-semibold text-surface-900 dark:text-white mb-4">选择货币</h2>
         <div class="flex flex-wrap gap-3">
           <button
@@ -54,7 +54,7 @@
       </div>
 
       <div v-if="goldPrice" class="space-y-8">
-        <div class="card p-8 bg-gradient-to-br from-gold-50 via-white to-white dark:from-gold-950/20 dark:via-surface-900 dark:to-surface-900 border-gold-200 dark:border-gold-800/50">
+        <div class="card-cyber-glow p-8 border-cyber-yellow-500 shadow-neon-yellow">
           <div class="flex flex-col md:flex-row items-center justify-between gap-6">
             <div class="flex items-center gap-6">
               <div class="relative">
@@ -93,7 +93,7 @@
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="card-hover p-6 text-center">
+          <div class="card-cyber p-6 text-center border-cyber-yellow-500/30">
             <div class="w-12 h-12 mx-auto mb-4 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
               <span class="text-white text-xl">↑</span>
             </div>
@@ -103,7 +103,7 @@
             </p>
           </div>
           
-          <div class="card-hover p-6 text-center">
+          <div class="card-cyber p-6 text-center border-cyber-yellow-500/30">
             <div class="w-12 h-12 mx-auto mb-4 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
               <span class="text-white text-xl">↓</span>
             </div>
@@ -113,7 +113,7 @@
             </p>
           </div>
           
-          <div class="card-hover p-6 text-center">
+          <div class="card-cyber p-6 text-center border-cyber-yellow-500/30">
             <div class="w-12 h-12 mx-auto mb-4 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
               <span class="text-white text-xl">~</span>
             </div>
@@ -123,7 +123,7 @@
             </p>
           </div>
           
-          <div class="card-hover p-6 text-center">
+          <div class="card-cyber p-6 text-center border-cyber-yellow-500/30">
             <div class="w-12 h-12 mx-auto mb-4 bg-gradient-to-br from-accent-400 to-accent-600 rounded-xl flex items-center justify-center shadow-lg">
               <span class="text-white text-xl">〰</span>
             </div>
@@ -134,7 +134,7 @@
           </div>
         </div>
 
-        <div class="card p-8">
+        <div class="card-cyber-glow p-8 border-cyber-yellow-500 shadow-neon-yellow">
           <div class="flex flex-col md:flex-row md:items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-surface-900 dark:text-white">价格走势</h2>
             <div class="flex gap-2 mt-4 md:mt-0">
@@ -168,7 +168,7 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="card-hover p-6">
+          <div class="card-cyber p-6 border-cyber-yellow-500/30">
             <div class="flex items-start gap-4">
               <div class="w-12 h-12 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
                 <span class="text-2xl">ℹ️</span>
@@ -183,7 +183,7 @@
             </div>
           </div>
           
-          <div class="card-hover p-6">
+          <div class="card-cyber p-6 border-cyber-yellow-500/30">
             <div class="flex items-start gap-4">
               <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
                 <span class="text-2xl">🕐</span>

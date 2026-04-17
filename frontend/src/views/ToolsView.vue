@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-surface-50 dark:bg-surface-950 py-8">
+  <div class="min-h-screen bg-cyber-void-950 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="mb-12">
         <span class="inline-block px-4 py-1.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-sm font-medium mb-4">
@@ -14,7 +14,7 @@
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div class="card-hover p-8">
+        <div class="card-cyber p-8 border-cyber-green-500/30">
           <div class="flex items-center gap-4 mb-6">
             <div class="relative">
               <div class="absolute inset-0 bg-blue-400/20 rounded-xl blur-lg"></div>
@@ -34,7 +34,7 @@
               <textarea
                 v-model="jsonInput"
                 placeholder='{"key": "value"}'
-                class="input h-32 font-mono text-sm resize-none"
+                class="input-cyber h-32 font-mono text-sm resize-none"
               ></textarea>
             </div>
             <div class="flex gap-3">
@@ -71,7 +71,7 @@
           </div>
         </div>
 
-        <div class="card-hover p-8">
+        <div class="card-cyber p-8 border-cyber-green-500/30">
           <div class="flex items-center gap-4 mb-6">
             <div class="relative">
               <div class="absolute inset-0 bg-green-400/20 rounded-xl blur-lg"></div>
@@ -91,7 +91,7 @@
               <textarea
                 v-model="base64Input"
                 placeholder="输入要编码或解码的文本..."
-                class="input h-24 font-mono text-sm resize-none"
+                class="input-cyber h-24 font-mono text-sm resize-none"
               ></textarea>
             </div>
             <div class="flex gap-3">
@@ -127,7 +127,7 @@
           </div>
         </div>
 
-        <div class="card-hover p-8">
+        <div class="card-cyber p-8 border-cyber-green-500/30">
           <div class="flex items-center gap-4 mb-6">
             <div class="relative">
               <div class="absolute inset-0 bg-purple-400/20 rounded-xl blur-lg"></div>
@@ -147,7 +147,7 @@
               <textarea
                 v-model="urlInput"
                 placeholder="输入要编码或解码的 URL..."
-                class="input h-24 font-mono text-sm resize-none"
+                class="input-cyber h-24 font-mono text-sm resize-none"
               ></textarea>
             </div>
             <div class="flex gap-3">
@@ -183,7 +183,7 @@
           </div>
         </div>
 
-        <div class="card-hover p-8">
+        <div class="card-cyber p-8 border-cyber-green-500/30">
           <div class="flex items-center gap-4 mb-6">
             <div class="relative">
               <div class="absolute inset-0 bg-red-400/20 rounded-xl blur-lg"></div>
@@ -203,7 +203,7 @@
               <input
                 v-model="hashInput"
                 placeholder="输入要计算哈希的文本..."
-                class="input font-mono"
+                class="input-cyber font-mono"
               />
             </div>
             <div class="flex flex-wrap gap-2">
@@ -239,7 +239,7 @@
           </div>
         </div>
 
-        <div class="card-hover p-8">
+        <div class="card-cyber p-8 border-cyber-green-500/30">
           <div class="flex items-center gap-4 mb-6">
             <div class="relative">
               <div class="absolute inset-0 bg-yellow-400/20 rounded-xl blur-lg"></div>
@@ -265,7 +265,7 @@
                 placeholder="输入时间戳..."
                 class="input flex-1 font-mono"
               />
-              <button @click="convertTimestamp" class="btn-primary">转换</button>
+              <button @click="convertTimestamp" class="btn-cyber-primary">转换</button>
             </div>
             <div v-if="timestampOutput" class="p-5 bg-surface-50 dark:bg-surface-900 rounded-xl space-y-3">
               <div class="flex justify-between items-center">
@@ -288,7 +288,7 @@
           </div>
         </div>
 
-        <div class="card-hover p-8">
+        <div class="card-cyber p-8 border-cyber-green-500/30">
           <div class="flex items-center gap-4 mb-6">
             <div class="relative">
               <div class="absolute inset-0 bg-indigo-400/20 rounded-xl blur-lg"></div>

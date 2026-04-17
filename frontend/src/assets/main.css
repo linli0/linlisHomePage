@@ -1,15 +1,16 @@
+@import './cyberpunk.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
   :root {
-    --color-primary: 14 165 233;
-    --color-gold: 245 158 11;
-    --color-accent: 217 70 239;
+    --color-primary: 0 240 255;
+    --color-gold: 252 238 10;
+    --color-accent: 255 42 109;
     --gradient-primary: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 50%, #d946ef 100%);
     --gradient-gold: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #fcd34d 100%);
     --gradient-dark: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    --gradient-cyber: linear-gradient(135deg, #00f0ff 0%, #8a2be2 50%, #ff2a6d 100%);
   }
 
   html {
@@ -20,7 +21,7 @@
   }
 
   body {
-    @apply text-surface-900 dark:text-surface-50 bg-surface-50 dark:bg-surface-950;
+    @apply text-cyber-cyan-400 bg-cyber-void-950;
     overflow-x: hidden;
   }
 
@@ -44,7 +45,6 @@
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-surface-400 dark:bg-surface-600;
   }
-}
 
 @layer components {
   .btn {

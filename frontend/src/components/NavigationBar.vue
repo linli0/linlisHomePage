@@ -1,9 +1,9 @@
 <template>
   <nav
     :class="[
-      'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+      'fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-cyber-cyan-500/30',
       isScrolled || !onHeroPage
-        ? 'bg-white/95 dark:bg-surface-900/95 backdrop-blur-xl shadow-soft'
+        ? 'bg-cyber-void-900/95 backdrop-blur-xl shadow-neon-cyan'
         : 'bg-transparent'
     ]"
   >
@@ -20,7 +20,7 @@
             <div class="flex flex-col">
               <span :class="[
                 'font-bold text-lg transition-colors',
-                (isScrolled || !onHeroPage) ? 'text-surface-900 dark:text-white' : 'text-white'
+                (isScrolled || !onHeroPage) ? 'text-cyber-cyan-400' : 'text-glow-cyan'
               ]">
                 CoffeeCookies
               </span>
@@ -33,8 +33,8 @@
               :class="[
                 'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200',
                 $route.path === '/' 
-                  ? ((isScrolled || !onHeroPage) ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' : 'bg-white/20 text-white')
-                  : ((isScrolled || !onHeroPage) ? 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800' : 'text-white/80 hover:text-white hover:bg-white/10')
+                  ? ((isScrolled || !onHeroPage) ? 'bg-cyber-cyan-500/20 text-glow-cyan' : 'bg-cyber-void-800/50 text-glow-cyan')
+                  : ((isScrolled || !onHeroPage) ? 'text-cyber-cyan-400 hover:text-glow-cyan hover:shadow-neon-cyan' : 'text-glow-cyan hover:text-white hover:shadow-neon-cyan')
               ]"
             >
               首页
@@ -44,8 +44,8 @@
               :class="[
                 'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-1.5',
                 $route.path === '/gold' 
-                  ? ((isScrolled || !onHeroPage) ? 'bg-gold-100 dark:bg-gold-900/30 text-gold-600 dark:text-gold-400' : 'bg-white/20 text-white')
-                  : ((isScrolled || !onHeroPage) ? 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800' : 'text-white/80 hover:text-white hover:bg-white/10')
+                  ? ((isScrolled || !onHeroPage) ? 'bg-cyber-magenta-500/20 text-glow-magenta' : 'bg-cyber-void-800/50 text-glow-magenta')
+                  : ((isScrolled || !onHeroPage) ? 'text-cyber-cyan-400 hover:text-glow-cyan hover:shadow-neon-cyan' : 'text-glow-cyan hover:text-white hover:shadow-neon-cyan')
               ]"
             >
               <span>💰</span>
@@ -68,7 +68,7 @@
                 'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200',
                 $route.path === '/tools' 
                   ? ((isScrolled || !onHeroPage) ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' : 'bg-white/20 text-white')
-                  : ((isScrolled || !onHeroPage) ? 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800' : 'text-white/80 hover:text-white hover:bg-white/10')
+                  : ((isScrolled || !onHeroPage) ? 'text-cyber-cyan-400 hover:text-glow-cyan hover:shadow-neon-cyan' : 'text-glow-cyan hover:text-white hover:shadow-neon-cyan')
               ]"
             >
               工具箱
@@ -79,7 +79,7 @@
                 'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-1.5',
                 $route.path === '/tweets' 
                   ? ((isScrolled || !onHeroPage) ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-white/20 text-white')
-                  : ((isScrolled || !onHeroPage) ? 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800' : 'text-white/80 hover:text-white hover:bg-white/10')
+                  : ((isScrolled || !onHeroPage) ? 'text-cyber-cyan-400 hover:text-glow-cyan hover:shadow-neon-cyan' : 'text-glow-cyan hover:text-white hover:shadow-neon-cyan')
               ]"
             >
               <span>🐦</span>
@@ -91,7 +91,7 @@
                 'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-1.5',
                 $route.path === '/xiaomi' 
                   ? ((isScrolled || !onHeroPage) ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400' : 'bg-white/20 text-white')
-                  : ((isScrolled || !onHeroPage) ? 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800' : 'text-white/80 hover:text-white hover:bg-white/10')
+                  : ((isScrolled || !onHeroPage) ? 'text-cyber-cyan-400 hover:text-glow-cyan hover:shadow-neon-cyan' : 'text-glow-cyan hover:text-white hover:shadow-neon-cyan')
               ]"
             >
               <span>🔊</span>
@@ -103,7 +103,7 @@
                 'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-1.5',
                 $route.path === '/quant' 
                   ? ((isScrolled || !onHeroPage) ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'bg-white/20 text-white')
-                  : ((isScrolled || !onHeroPage) ? 'text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800' : 'text-white/80 hover:text-white hover:bg-white/10')
+                  : ((isScrolled || !onHeroPage) ? 'text-cyber-cyan-400 hover:text-glow-cyan hover:shadow-neon-cyan' : 'text-glow-cyan hover:text-white hover:shadow-neon-cyan')
               ]"
             >
               <span>📊</span>

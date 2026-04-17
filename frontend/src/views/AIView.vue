@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-surface-50 dark:bg-surface-950 py-8">
+  <div class="min-h-screen bg-cyber-void-950 py-8">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="mb-10">
         <span class="inline-block px-4 py-1.5 rounded-full bg-accent-100 dark:bg-accent-900/30 text-accent-600 dark:text-accent-400 text-sm font-medium mb-4">
@@ -13,7 +13,7 @@
         </p>
       </div>
       
-      <div class="card-hover p-8">
+      <div class="card-cyber-glow p-8 border-cyber-purple-500 shadow-neon-purple">
         <AIChat />
       </div>
     </div>

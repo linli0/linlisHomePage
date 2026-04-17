@@ -1,0 +1,143 @@
+@layer components {
+  /* 故障文字效果 */
+  .glitch-text {
+    @apply relative inline-block;
+    animation: glitch 2s infinite;
+  }
+  
+  /* 扫描线叠加效果 */
+  .scanlines {
+    position: relative;
+  }
+  
+  .scanlines::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.1),
+      rgba(0, 0, 0, 0.1) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+    pointer-events: none;
+    z-index: 10;
+  }
+  
+  /* 霓虹按钮样式 */
+  .btn-cyber {
+    @apply px-6 py-3 font-bold uppercase tracking-wider transition-all duration-300;
+    @apply border-2 border-cyber-cyan-500 text-cyber-cyan-500;
+    @apply hover:bg-cyber-cyan-500/10 hover:shadow-neon-cyan;
+    @apply active:scale-95;
+  }
+  
+  .btn-cyber-primary {
+    @apply px-6 py-3 font-bold uppercase tracking-wider transition-all duration-300;
+    @apply bg-cyber-magenta-500 text-white;
+    @apply hover:bg-cyber-magenta-600 hover:shadow-neon-magenta;
+    @apply active:scale-95;
+  }
+  
+  .btn-cyber-secondary {
+    @apply px-6 py-3 font-bold uppercase tracking-wider transition-all duration-300;
+    @apply border-2 border-cyber-purple-500 text-cyber-purple-500;
+    @apply hover:bg-cyber-purple-500/10 hover:shadow-neon-purple;
+    @apply active:scale-95;
+  }
+  
+  /* 赛博朋克卡片样式 */
+  .card-cyber {
+    @apply bg-cyber-void-900 border border-cyber-cyan-500/30;
+    @apply backdrop-blur-sm;
+  }
+  
+  .card-cyber-glow {
+    @apply bg-cyber-void-900 border border-cyber-cyan-500/50;
+    @apply backdrop-blur-sm shadow-neon-cyan;
+  }
+  
+  /* 矩阵式输入框样式 */
+  .input-cyber {
+    @apply w-full px-4 py-3 bg-cyber-void-950 border-2 border-cyber-green-500/50;
+    @apply text-cyber-green-500 font-mono;
+    @apply focus:outline-none focus:border-cyber-green-500 focus:shadow-neon-green;
+    @apply transition-all duration-300;
+  }
+  
+  /* 霓虹边框效果 */
+  .border-cyber-cyan {
+    @apply border-2 border-cyber-cyan-500 shadow-neon-cyan;
+  }
+  
+  .border-cyber-magenta {
+    @apply border-2 border-cyber-magenta-500 shadow-neon-magenta;
+  }
+  
+  .border-cyber-purple {
+    @apply border-2 border-cyber-purple-500 shadow-neon-purple;
+  }
+  
+  .border-cyber-green {
+    @apply border-2 border-cyber-green-500 shadow-neon-green;
+  }
+  
+  .border-cyber-yellow {
+    @apply border-2 border-cyber-yellow-500 shadow-neon-yellow;
+  }
+}
+
+@layer utilities {
+  /* 霓虹发光文字类 */
+  .text-glow-cyan {
+    @apply text-cyber-cyan-500;
+    text-shadow: 0 0 5px rgba(0, 240, 255, 0.7), 0 0 10px rgba(0, 240, 255, 0.5), 0 0 20px rgba(0, 240, 255, 0.3);
+  }
+  
+  .text-glow-magenta {
+    @apply text-cyber-magenta-500;
+    text-shadow: 0 0 5px rgba(255, 42, 109, 0.7), 0 0 10px rgba(255, 42, 109, 0.5), 0 0 20px rgba(255, 42, 109, 0.3);
+  }
+  
+  .text-glow-purple {
+    @apply text-cyber-purple-500;
+    text-shadow: 0 0 5px rgba(138, 43, 226, 0.7), 0 0 10px rgba(138, 43, 226, 0.5), 0 0 20px rgba(138, 43, 226, 0.3);
+  }
+  
+  .text-glow-green {
+    @apply text-cyber-green-500;
+    text-shadow: 0 0 5px rgba(5, 255, 161, 0.7), 0 0 10px rgba(5, 255, 161, 0.5), 0 0 20px rgba(5, 255, 161, 0.3);
+  }
+  
+  .text-glow-yellow {
+    @apply text-cyber-yellow-500;
+    text-shadow: 0 0 5px rgba(252, 238, 10, 0.7), 0 0 10px rgba(252, 238, 10, 0.5), 0 0 20px rgba(252, 238, 10, 0.3);
+  }
+  
+  /* 网格背景图案 */
+  .bg-cyber-grid {
+    background-image: 
+      linear-gradient(rgba(0, 240, 255, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 240, 255, 0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+}
+
+/* 减少动画的媒体查询 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .glitch-text {
+    animation: none !important;
+  }
+}

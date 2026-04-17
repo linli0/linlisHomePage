@@ -39,7 +39,7 @@
       <div class="flex items-center gap-3">
         <select 
           v-model="selectedModel" 
-          class="input w-52 text-sm"
+          class="input-cyber w-52 text-sm"
           :disabled="models.length === 0 || isLoading"
         >
           <option value="">选择模型</option>
@@ -49,7 +49,7 @@
         </select>
         <button 
           @click="refreshModels" 
-          class="btn-secondary p-2.5"
+          class="btn-cyber-secondary p-2.5"
           :disabled="isRefreshing"
           title="刷新模型列表"
         >
@@ -125,14 +125,14 @@
       <textarea
         v-model="inputMessage"
         placeholder="输入消息... (按 Enter 发送，Shift + Enter 换行)"
-        class="input flex-1 resize-none"
+        class="input-cyber flex-1 resize-none"
         rows="3"
         :disabled="isLoading || !selectedModel"
         @keydown.enter.prevent="handleEnterKey"
       ></textarea>
       <button 
         @click="sendMessage" 
-        class="btn-primary px-8"
+        class="btn-cyber-primary px-8"
         :disabled="isLoading || !inputMessage.trim() || !selectedModel"
       >
         <span v-if="isLoading" class="flex items-center gap-2">

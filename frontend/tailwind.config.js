@@ -59,6 +59,39 @@ export default {
           800: '#27272a',
           900: '#18181b',
           950: '#09090b',
+        },
+        cyber: {
+          cyan: {
+            400: '#22f7ff',
+            500: '#00f0ff',
+            600: '#00c4cc',
+          },
+          magenta: {
+            400: '#ff5a8c',
+            500: '#ff2a6d',
+            600: '#d91a5a',
+          },
+          purple: {
+            400: '#a855f7',
+            500: '#8a2be2',
+            600: '#7c3aed',
+          },
+          yellow: {
+            400: '#fef34d',
+            500: '#fcee0a',
+            600: '#d9c909',
+          },
+          green: {
+            400: '#3bffb8',
+            500: '#05ffa1',
+            600: '#04cc81',
+          },
+          void: {
+            700: '#1a1a2e',
+            800: '#12121f',
+            900: '#0d0d14',
+            950: '#0a0a0f',
+          },
         }
       },
       fontFamily: {
@@ -73,6 +106,11 @@ export default {
         'glow-gold': '0 0 20px rgba(245, 158, 11, 0.3)',
         'glow-accent': '0 0 20px rgba(217, 70, 239, 0.3)',
         'inner-soft': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)',
+        'neon-cyan': '0 0 5px rgba(0, 240, 255, 0.7), 0 0 10px rgba(0, 240, 255, 0.5), 0 0 20px rgba(0, 240, 255, 0.3), 0 0 40px rgba(0, 240, 255, 0.2)',
+        'neon-magenta': '0 0 5px rgba(255, 42, 109, 0.7), 0 0 10px rgba(255, 42, 109, 0.5), 0 0 20px rgba(255, 42, 109, 0.3), 0 0 40px rgba(255, 42, 109, 0.2)',
+        'neon-purple': '0 0 5px rgba(138, 43, 226, 0.7), 0 0 10px rgba(138, 43, 226, 0.5), 0 0 20px rgba(138, 43, 226, 0.3), 0 0 40px rgba(138, 43, 226, 0.2)',
+        'neon-green': '0 0 5px rgba(5, 255, 161, 0.7), 0 0 10px rgba(5, 255, 161, 0.5), 0 0 20px rgba(5, 255, 161, 0.3), 0 0 40px rgba(5, 255, 161, 0.2)',
+        'neon-yellow': '0 0 5px rgba(252, 238, 10, 0.7), 0 0 10px rgba(252, 238, 10, 0.5), 0 0 20px rgba(252, 238, 10, 0.3), 0 0 40px rgba(252, 238, 10, 0.2)',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
@@ -93,6 +131,9 @@ export default {
         'bounce-subtle': 'bounceSubtle 2s ease-in-out infinite',
         'spin-slow': 'spin 3s linear infinite',
         'wiggle': 'wiggle 1s ease-in-out infinite',
+        'glitch': 'glitch 2s infinite',
+        'scanline': 'scanline 8s linear infinite',
+        'pulse-neon': 'pulseNeon 2s ease-in-out infinite',
       },
       keyframes: {
         float: {
@@ -130,6 +171,44 @@ export default {
         wiggle: {
           '0%, 100%': { transform: 'rotate(-3deg)' },
           '50%': { transform: 'rotate(3deg)' },
+        },
+        glitch: {
+          '0%, 100%': { 
+            transform: 'translate(0)',
+            textShadow: '0.05em 0 0 rgba(0, 240, 255, 0.75), -0.05em -0.025em 0 rgba(255, 42, 109, 0.75)'
+          },
+          '14%': { 
+            transform: 'translate(-0.05em, -0.025em)',
+            textShadow: '0.05em 0 0 rgba(0, 240, 255, 0.75), -0.05em -0.025em 0 rgba(255, 42, 109, 0.75)'
+          },
+          '15%': { 
+            transform: 'translate(0.05em, 0.025em)',
+            textShadow: '-0.05em 0 0 rgba(0, 240, 255, 0.75), 0.05em 0.025em 0 rgba(255, 42, 109, 0.75)'
+          },
+          '49%': { 
+            transform: 'translate(0.05em, -0.025em)',
+            textShadow: '-0.05em 0 0 rgba(0, 240, 255, 0.75), 0.05em 0.025em 0 rgba(255, 42, 109, 0.75)'
+          },
+          '50%': { 
+            transform: 'translate(-0.05em, 0.025em)',
+            textShadow: '0.05em 0 0 rgba(0, 240, 255, 0.75), -0.05em -0.025em 0 rgba(255, 42, 109, 0.75)'
+          },
+          '99%': { 
+            transform: 'translate(-0.05em, -0.025em)',
+            textShadow: '0.05em 0 0 rgba(0, 240, 255, 0.75), -0.05em -0.025em 0 rgba(255, 42, 109, 0.75)'
+          },
+        },
+        scanline: {
+          '0%': { transform: 'translateY(-100%)' },
+          '100%': { transform: 'translateY(100vh)' },
+        },
+        pulseNeon: {
+          '0%, 100%': { 
+            filter: 'brightness(1) drop-shadow(0 0 5px rgba(0, 240, 255, 0.5))',
+          },
+          '50%': { 
+            filter: 'brightness(1.3) drop-shadow(0 0 20px rgba(0, 240, 255, 0.8))',
+          },
         },
       },
       transitionTimingFunction: {

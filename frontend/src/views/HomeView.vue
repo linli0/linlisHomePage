@@ -19,12 +19,12 @@
             全新设计 · 现代化体验
           </div>
           
-          <h1 class="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 tracking-tight">
+          <h1 class="text-5xl md:text-7xl lg:text-8xl font-bold text-glow-cyan mb-6 tracking-tight glitch-text">
             <span class="block">Coffee</span>
             <span class="block bg-clip-text text-transparent bg-gradient-to-r from-white via-gold-200 to-white">Cookies</span>
           </h1>
           
-          <p class="text-xl md:text-2xl text-white/80 mb-12 max-w-2xl mx-auto leading-relaxed">
+          <p class="text-xl md:text-2xl text-cyber-cyan-400 mb-12 max-w-2xl mx-auto leading-relaxed">
             集金价追踪、技术文章、实用工具于一体的<br class="hidden sm:block" />
             <span class="font-semibold text-white">现代化全栈应用</span>
           </p>
@@ -32,7 +32,7 @@
           <div class="flex flex-col sm:flex-row flex-wrap justify-center gap-4">
             <router-link 
               to="/gold" 
-              class="group relative px-8 py-4 bg-white text-surface-900 rounded-2xl font-semibold text-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1"
+              class="btn-cyber-primary font-semibold text-lg overflow-hidden transition-all duration-300 hover:-translate-y-1"
             >
               <span class="relative z-10 flex items-center justify-center gap-2">
                 <span class="text-2xl">💰</span>
@@ -47,7 +47,7 @@
             
             <router-link 
               to="/ai" 
-              class="group px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/30 text-white rounded-2xl font-semibold text-lg transition-all duration-300 hover:bg-white/20 hover:border-white/50 hover:-translate-y-1"
+              class="btn-cyber font-semibold text-lg transition-all duration-300 hover:-translate-y-1"
             >
               <span class="flex items-center justify-center gap-2">
                 <span class="text-2xl">🤖</span>
@@ -57,7 +57,7 @@
             
             <router-link 
               to="/articles" 
-              class="group px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/30 text-white rounded-2xl font-semibold text-lg transition-all duration-300 hover:bg-white/20 hover:border-white/50 hover:-translate-y-1"
+              class="btn-cyber font-semibold text-lg transition-all duration-300 hover:-translate-y-1"
             >
               <span class="flex items-center justify-center gap-2">
                 <span class="text-2xl">📝</span>
