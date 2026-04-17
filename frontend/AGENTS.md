@@ -2,7 +2,7 @@
 
 > Vue 3 Composition API + Pinia + Vue Router + Tailwind CSS
 
-**Generated:** 2026-04-14
+**Generated:** 2026-04-15
 
 ---
 

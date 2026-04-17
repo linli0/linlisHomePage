@@ -3,6 +3,7 @@ package com.coffeecookies.homepage.service;
 import com.coffeecookies.homepage.dto.BacktestResultDTO;
 import com.coffeecookies.homepage.entity.BacktestResult;
 import com.coffeecookies.homepage.entity.GoldPrice;
+import com.coffeecookies.homepage.entity.TradingSignal;
 import com.coffeecookies.homepage.entity.TradingStrategy;
 import com.coffeecookies.homepage.repository.BacktestResultRepository;
 import com.coffeecookies.homepage.repository.GoldPriceRepository;
@@ -15,7 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -52,21 +55,31 @@ public class BacktestingService {
             throw new IllegalStateException("No historical price data available for backtesting");
         }
         
-        // Generate trading signals based on the strategy and parameters
-        List<TradeResult> trades = signalGenerationService.generateSignals(strategy, parameters, historicalPrices);
+        // Generate trading signals based on the strategy
+        TradingSignal generatedSignal = signalGenerationService.generateSignals(strategyId);
+        List<TradeResult> trades = mapSignalToTrades(generatedSignal, historicalPrices);
         
         // Calculate performance metrics
         PerformanceMetrics metrics = calculatePerformanceMetrics(trades);
         
         // Create and save backtest result
         BacktestResult result = new BacktestResult();
-        result.setStrategy(strategy);
+        result.setStrategyId(strategy.getId());
         result.setParameters(parameters);
         result.setTotalReturn(metrics.getTotalReturn());
         result.setSharpeRatio(metrics.getSharpeRatio());
         result.setMaxDrawdown(metrics.getMaxDrawdown());
         result.setWinRate(metrics.getWinRate());
-        result.setNumberOfTrades(trades.size());
+        int totalTrades = trades.size();
+        int profitTrades = (int) trades.stream()
+                .filter(trade -> trade.getProfitLoss().compareTo(BigDecimal.ZERO) > 0)
+                .count();
+        int lossTrades = totalTrades - profitTrades;
+        result.setTotalTrades(totalTrades);
+        result.setProfitTrades(profitTrades);
+        result.setLossTrades(lossTrades);
+        result.setAverageProfit(calculateAverageProfit(trades));
+        result.setAverageLoss(calculateAverageLoss(trades));
         result.setStartDate(historicalPrices.get(0).getRecordedAt());
         result.setEndDate(historicalPrices.get(historicalPrices.size() - 1).getRecordedAt());
         result.setCreatedAt(LocalDateTime.now());
@@ -221,20 +234,68 @@ public class BacktestingService {
      * Converts BacktestResult entity to DTO
      */
     private BacktestResultDTO convertToDTO(BacktestResult result) {
+        TradingStrategy strategy = tradingStrategyRepository.findById(result.getStrategyId()).orElse(null);
         return BacktestResultDTO.builder()
                 .id(result.getId())
-                .strategyId(result.getStrategy().getId())
-                .strategyName(result.getStrategy().getName())
+                .strategyId(result.getStrategyId())
+                .strategyName(strategy != null ? strategy.getName() : null)
                 .parameters(result.getParameters())
                 .totalReturn(result.getTotalReturn())
                 .sharpeRatio(result.getSharpeRatio())
                 .maxDrawdown(result.getMaxDrawdown())
                 .winRate(result.getWinRate())
-                .numberOfTrades(result.getNumberOfTrades())
+                .totalTrades(result.getTotalTrades())
+                .profitTrades(result.getProfitTrades())
+                .lossTrades(result.getLossTrades())
+                .averageProfit(result.getAverageProfit())
+                .averageLoss(result.getAverageLoss())
                 .startDate(result.getStartDate())
                 .endDate(result.getEndDate())
                 .createdAt(result.getCreatedAt())
                 .build();
+    }
+
+    private List<TradeResult> mapSignalToTrades(TradingSignal signal, List<GoldPrice> historicalPrices) {
+        if (signal == null || historicalPrices.size() < 2) {
+            return Collections.emptyList();
+        }
+        GoldPrice entry = historicalPrices.get(historicalPrices.size() - 2);
+        GoldPrice exit = historicalPrices.get(historicalPrices.size() - 1);
+        String direction = signal.getSignalType() == TradingSignal.SignalType.SELL ? "SHORT" : "LONG";
+        TradeResult trade = new TradeResult(
+                entry.getRecordedAt(),
+                exit.getRecordedAt(),
+                entry.getPriceUsd(),
+                exit.getPriceUsd(),
+                BigDecimal.ONE,
+                direction
+        );
+        return List.of(trade);
+    }
+
+    private BigDecimal calculateAverageProfit(List<TradeResult> trades) {
+        List<BigDecimal> profits = trades.stream()
+                .map(TradeResult::getProfitLoss)
+                .filter(value -> value.compareTo(BigDecimal.ZERO) > 0)
+                .toList();
+        if (profits.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal sum = profits.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        return sum.divide(BigDecimal.valueOf(profits.size()), 4, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal calculateAverageLoss(List<TradeResult> trades) {
+        List<BigDecimal> losses = trades.stream()
+                .map(TradeResult::getProfitLoss)
+                .filter(value -> value.compareTo(BigDecimal.ZERO) < 0)
+                .map(BigDecimal::abs)
+                .toList();
+        if (losses.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal sum = losses.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        return sum.divide(BigDecimal.valueOf(losses.size()), 4, RoundingMode.HALF_UP);
     }
 
     /**

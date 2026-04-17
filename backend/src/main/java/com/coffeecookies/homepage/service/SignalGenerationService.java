@@ -16,7 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -46,13 +48,13 @@ public class SignalGenerationService {
         MarketAnalysisDTO marketAnalysis = analyzeMarketConditions(strategy.getSymbol());
         
         // Determine signal type based on market conditions
-        String signalType;
+        TradingSignal.SignalType signalType;
         if (isBuySignal(marketAnalysis.getIndicators())) {
-            signalType = "BUY";
+            signalType = TradingSignal.SignalType.BUY;
         } else if (isSellSignal(marketAnalysis.getIndicators())) {
-            signalType = "SELL";
+            signalType = TradingSignal.SignalType.SELL;
         } else {
-            signalType = "HOLD";
+            signalType = TradingSignal.SignalType.HOLD;
         }
         
         // Calculate confidence score
@@ -66,7 +68,7 @@ public class SignalGenerationService {
         signal.setConfidence(confidenceScore);
         signal.setCreatedAt(LocalDateTime.now());
         signal.setExecuted(false);
-        signal.setPrice(marketPrice);
+        signal.setPrice(marketAnalysis.getCurrentPrice());
         signal.setReason(marketAnalysis.getIndicators().toString());
         
         TradingSignal savedSignal = tradingSignalRepository.save(signal);
@@ -91,7 +93,7 @@ public class SignalGenerationService {
                 .orElse(BigDecimal.valueOf(2000.00)); // Default fallback price
         
         // Get technical indicators from TechnicalIndicatorService
-        Map<String, Object> indicators = technicalIndicatorService.calculateIndicators(symbol);
+        Map<String, Object> indicators = buildIndicators(symbol, currentPrice);
         
         return MarketAnalysisDTO.builder()
                 .symbol(symbol)
@@ -99,6 +101,34 @@ public class SignalGenerationService {
                 .indicators(indicators)
                 .timestamp(LocalDateTime.now())
                 .build();
+    }
+
+    private Map<String, Object> buildIndicators(String symbol, BigDecimal currentPrice) {
+        Map<String, Object> indicators = new HashMap<>();
+        indicators.put("price", currentPrice);
+
+        List<BigDecimal> prices = technicalIndicatorService.getHistoricalPrices(symbol, 60);
+        if (prices.isEmpty()) {
+            indicators.put("rsi", BigDecimal.ZERO);
+            indicators.put("upperBand", currentPrice);
+            indicators.put("lowerBand", currentPrice);
+            indicators.put("macd", BigDecimal.ZERO);
+            indicators.put("signalLine", BigDecimal.ZERO);
+            indicators.put("volume", BigDecimal.ZERO);
+            return indicators;
+        }
+
+        BigDecimal rsi = technicalIndicatorService.calculateRSI(prices, 14);
+        Map<String, BigDecimal> bb = technicalIndicatorService.calculateBollingerBands(prices, 20, 2);
+        Map<String, BigDecimal> macd = technicalIndicatorService.calculateMACD(prices);
+
+        indicators.put("rsi", rsi);
+        indicators.put("upperBand", bb.getOrDefault("upper", currentPrice));
+        indicators.put("lowerBand", bb.getOrDefault("lower", currentPrice));
+        indicators.put("macd", macd.getOrDefault("macd", BigDecimal.ZERO));
+        indicators.put("signalLine", macd.getOrDefault("signal", BigDecimal.ZERO));
+        indicators.put("volume", BigDecimal.ZERO);
+        return indicators;
     }
 
     /**
@@ -212,19 +242,24 @@ public class SignalGenerationService {
     @Transactional(readOnly = true)
     public List<TradingSignalDTO> getActiveSignals() {
         log.debug("Retrieving active trading signals");
-        
-        List<TradingSignal> activeSignals = tradingSignalRepository.findByExecutedFalseOrderByGeneratedAtDesc();
+        List<TradingSignal> activeSignals = tradingSignalRepository.findByExecuted(false).stream()
+                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                .toList();
         
         return activeSignals.stream()
                 .map(signal -> TradingSignalDTO.builder()
                         .id(signal.getId())
                         .strategyId(signal.getStrategyId())
                         .symbol(signal.getSymbol())
-                        .signalType(signal.getSignalType())
+                        .signalType(signal.getSignalType().name())
                         .confidence(signal.getConfidence())
                         .createdAt(signal.getCreatedAt())
                         .price(signal.getPrice())
                         .executed(signal.isExecuted())
+                        .reason(signal.getReason())
+                        .targetPrice(signal.getTargetPrice())
+                        .stopLoss(signal.getStopLoss())
+                        .executedAt(signal.getExecutedAt())
                         .build())
                 .toList();
     }
@@ -283,7 +318,7 @@ public class SignalGenerationService {
                 try {
                     TradingSignal signal = generateSignals(strategy.getId());
                     log.info("Generated {} signal for strategy '{}' with confidence score: {}", 
-                            signal.getSignalType(), strategy.getName(), signal.getConfidenceScore());
+                            signal.getSignalType(), strategy.getName(), signal.getConfidence());
                 } catch (Exception e) {
                     log.error("Failed to generate signals for strategy ID {}: {}", strategy.getId(), e.getMessage(), e);
                 }

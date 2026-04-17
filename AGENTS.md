@@ -2,7 +2,7 @@
 
 > 全栈个人主页：金价追踪 + 技术文章 + 实用工具 + AI 对话
 
-**Generated:** 2026-04-08 | **Commit:** 47b0e78 | **Branch:** feature/frontend-redesign
+**Generated:** 2026-04-15 | **Commit:** 5e7f0f7 | **Branch:** feature/frontend-redesign
 
 ---
 
@@ -35,13 +35,21 @@
 
 ```
 coffeeCookie'sHomePage/
-├── backend/                # 【主后端】Spring Boot，端口 8080
-│   ├── src/main/java/      # Java 源代码
-│   ├── src/main/resources/ # 配置文件
+├── backend/                # 【主后端】Spring Boot，端口 8080 → 见 backend/AGENTS.md
+│   ├── src/main/java/      # Java 源代码（89 文件）
+│   ├── src/test/java/      # 测试代码（JUnit 5 + Testcontainers）
 │   └── pom.xml            # Maven 配置
 ├── frontend/               # Vue 3 前端 → 见 frontend/AGENTS.md
-│   ├── src/               # 源代码
+│   ├── src/               # 源代码（12 views, 8 components, 8 API）
+│   ├── tests/             # 测试代码（39 文件，Vitest + Playwright）
 │   └── package.json       # npm 配置
+├── doc/                    # 集中式文档目录
+│   ├── architecture/      # 系统架构
+│   ├── backend/           # 后端实现细节
+│   ├── frontend/          # 前端实现细节
+│   ├── testing/           # 测试策略
+│   └── deployment/        # 部署指南
+├── .config/                # Cloudflare Tunnel 配置
 ├── start.bat               # Windows 启动脚本
 ├── docker-compose.yml      # Docker 编排
 └── source-projects/        # 原始项目备份（仅参考）
