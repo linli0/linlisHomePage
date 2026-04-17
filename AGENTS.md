@@ -3,6 +3,10 @@
 > 全栈个人主页：金价追踪 + 技术文章 + 实用工具 + AI 对话
 
 **Generated:** 2026-04-17 | **Commit:** 2b2dad7 | **Branch:** feature/frontend-redesign
+**Entry Points:**
+- Backend: `backend/src/main/java/com/coffeecookies/homepage/Application.java` (Spring Boot startup)
+- Frontend: `frontend/src/main.ts` (Vue app initialization), `frontend/index.html` (HTML entry)
+- Root component: `frontend/src/App.vue`
 
 ---
 
@@ -146,6 +150,27 @@ cd frontend && npm run dev            # 终端2：Vite 开发服务器（端口 
 # 生产部署
 cd backend && mvn clean package -DskipTests && java -jar target/*.jar
 ```
+
+---
+
+## KNOWN ISSUES & NON-STANDARD PATTERNS
+
+### Build & CI
+1. **Missing CI/CD infrastructure**: No GitHub Actions workflows, no Makefile for build automation
+2. **Inconsistent build scripts**: `start.bat` (Windows) uses direct Maven execution, `start.sh` (Linux/Mac) uses Docker Compose
+3. **Docker health check issues**: Backend Dockerfile references `/actuator/health` endpoint but Spring Boot Actuator may not be enabled
+4. **No automated test execution in build scripts**: Comprehensive test frameworks exist but are not run automatically during build
+5. **No versioning strategy for Docker images**: No artifact retention policy
+
+### Security
+1. **Hardcoded secrets in .env.example**: Default passwords (admin123, homepage123) and base64 encoded JWT secret exposed
+2. **No environment variable validation**: Application may fail silently with default values
+
+### Configuration
+1. **Frontend exposes port 80**: Requires root/admin privileges, no port conflict detection
+2. **Log files in root directory**: `backend.log`, `tunnel.log` should be moved to `logs/` directory with rotation
+3. **Fragmented documentation**: Documentation spread across root, `doc/`, backend, frontend, and hidden directories
+4. **Source projects backup directory**: `source-projects/` contains original project backups, should be moved to external storage
 
 ---
 
