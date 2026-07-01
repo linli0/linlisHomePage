@@ -301,3 +301,25 @@ nohup $CLOUDFLARED tunnel --url http://localhost:8080 > tunnel.log 2>&1 &
 - **Vue 组件风格**：全部使用 `<script setup lang="ts">`，无 Options API
 - **数据库**：开发使用 H2 内存数据库，生产使用 MySQL
 - **功能改动归档**：所有功能改动必须基于需求设计、技术设计、代码开发、白盒测试以及自动化测试进行完整归档
+
+---
+
+## Cursor Cloud specific instructions
+
+Durable, non-obvious notes for running this repo in the Cloud Agent VM. The active codebase lives on the `feature/frontend-redesign` branch (the `main` branch only contains a README).
+
+### Toolchain / environment
+- **Java 21** is installed system-wide; the project targets Java 17 but Spring Boot 3.2 compiles/runs fine on 21. No JDK switch is needed.
+- **Maven** is installed system-wide (there is **no** `mvnw` wrapper — it is gitignored). The startup update script refreshes deps: `npm install` (frontend) + `mvn dependency:go-offline` (backend).
+- **No Docker / MySQL is required for development.** Backend dev uses an H2 file DB at `backend/data/`. Docker + `docker-compose.yml` are only for the prod-like stack.
+
+### Running the two services (dev mode)
+- Backend: `cd backend && mvn spring-boot:run` → port **8080**. On first boot `DataInitializer` seeds users, categories, tags, and 2 sample articles. Login is **password-only** (`admin123`).
+- Frontend: `cd frontend && npm run dev` → Vite on port **3000**, which proxies `/api` → `http://localhost:8080` (see `frontend/vite.config.ts`). Do dev/UI work against port 3000.
+- Alternatively, `cd frontend && npm run build` writes to `frontend/dist/`, which the backend serves as static content at `http://localhost:8080` (see `spring.web.resources.static-locations` in `application.yml`).
+- Optional integrations (Ollama AI, Twitter/Truth Social, Xiaomi speaker, MetalpriceAPI) are disabled/best-effort by default and are **not** needed to run the app.
+
+### Known pre-existing issues (NOT environment problems — do not "fix" as part of setup)
+- `npm run test:run` (Vitest) also globs the Playwright specs under `frontend/tests/e2e/**`, which Vitest cannot transform, so those 5 files error out. The real unit tests pass (91 passing). Run E2E separately with `npm run test:e2e` (Playwright).
+- `mvn test` has 1 failing test: `GoldPriceServiceConfigurationTest.updateGoldPrice_shouldSkipWhenMetalPriceApiDisabled` (a Mockito verification assertion in test code).
+- `frontend/src/utils/request.ts` stores cached GET response bodies into an `X-Cache-Data` request header; when the cached body contains non-Latin1 (Chinese) text, repeat calls within the 30s cache TTL throw `setRequestHeader ... non ISO-8859-1 code point`, which blanks the Gold Price / Articles views on cached reloads. Login and initial navigation are unaffected.
