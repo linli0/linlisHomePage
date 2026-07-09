@@ -1,7 +1,7 @@
 # linlisHomePage Roadmap
 
-> **架构方向（2026-07）**：放弃 Spring Boot / Java 后端，迁移为 **Vue 3 + Python FastAPI** 轻量化全栈架构。  
-> 本文档替代旧版「整合 Java 分支」计划，作为当前唯一主线 roadmap。
+> **架构方向（2026-07）**：已迁移为 **Vue 3 + Python FastAPI** 轻量化全栈架构。  
+> **迁移状态（2026-07-09）**：MVP 已完成 — `api/` 后端、27 项 pytest、Java 归档至 `legacy/spring-boot/`。
 
 ## 1. 现状与决策
 

@@ -1,8 +1,29 @@
 # linlisHomePage (CoffeeCookies Homepage)
 
-一个个人主页全栈应用，当前为 **Vue 3 + Spring Boot**（过渡期），计划迁移为 **Vue 3 + Python FastAPI** 轻量化架构。
+个人主页全栈应用：**Vue 3 + Python FastAPI** 轻量化架构。
 
-> **架构迁移进行中**：详见 [ROADMAP.md](ROADMAP.md) — 放弃 Java，目标栈为 FastAPI + SQLite，默认 2 容器部署。
+> Java/Spring Boot 后端已归档至 `legacy/spring-boot/`，详见 [ROADMAP.md](ROADMAP.md) 与 [FastAPI 架构说明](doc/architecture/fastapi-overview.md)。
+
+## 快速开始
+
+```bash
+# Docker（推荐）
+./start.sh
+
+# 本地开发（FastAPI :8000 + Vite :3000）
+./start.sh dev
+
+# API 测试（TDD）
+cd api && pip install -r requirements.txt && PYTHONPATH=. pytest
+```
+
+| 服务 | 地址 |
+|------|------|
+| 前端 | http://localhost:3000 (dev) / http://localhost (docker) |
+| API | http://localhost:8000/api |
+| OpenAPI | http://localhost:8000/docs |
+
+默认账号：`admin` / `admin123`，`user` / `user123`
 
 ## Agent skills (Cursor)
 
@@ -57,12 +78,12 @@ This repo is configured with [agent-skills](https://github.com/addyosmani/agent-
 ## 🛠️ 技术栈
 
 ### 后端
-- **框架**: Spring Boot 3.2
-- **语言**: Java 17
-- **数据库**: H2 (开发) / MySQL (生产)
-- **ORM**: Spring Data JPA
-- **安全**: Spring Security + JWT
-- **API 风格**: RESTful
+- **框架**: FastAPI + Uvicorn
+- **语言**: Python 3.12
+- **数据库**: SQLite（默认）
+- **ORM**: SQLAlchemy 2.0
+- **安全**: JWT + bcrypt
+- **测试**: pytest（TDD，27 项用例）
 
 ### 前端
 - **框架**: Vue 3 + Composition API
@@ -80,68 +101,39 @@ This repo is configured with [agent-skills](https://github.com/addyosmani/agent-
 ## 📁 项目结构
 
 ```
-coffeeCookie'sHomePage/
-├── backend/                # Spring Boot 后端
-│   ├── src/main/java/      # Java 源代码
-│   │   └── com/coffeecookies/homepage/
-│   │       ├── config/     # 配置类
-│   │       ├── controller/ # API 控制器
-│   │       ├── dto/        # 数据传输对象
-│   │       ├── entity/     # 实体类
-│   │       ├── repository/ # 数据访问层
-│   │       ├── security/   # 安全相关
-│   │       └── service/    # 业务逻辑层
-│   ├── src/main/resources/ # 配置文件
-│   ├── Dockerfile          # 后端 Docker 镜像
-│   └── pom.xml            # Maven 配置
-│
+linlisHomePage/
+├── api/                    # FastAPI 后端
+│   ├── app/                # 应用代码
+│   ├── tests/              # pytest TDD 测试
+│   └── Dockerfile
 ├── frontend/               # Vue 3 前端
-│   ├── src/
-│   │   ├── api/           # API 接口
-│   │   ├── components/    # 组件
-│   │   ├── router/        # 路由配置
-│   │   ├── stores/        # Pinia 状态管理
-│   │   ├── utils/         # 工具函数
-│   │   ├── views/         # 页面视图
-│   │   ├── App.vue        # 根组件
-│   │   └── main.ts        # 入口文件
-│   ├── Dockerfile         # 前端 Docker 镜像
-│   └── package.json       # 依赖配置
-│
-├── docker-compose.yml     # Docker Compose 配置
-└── README.md             # 项目说明
+├── legacy/spring-boot/     # 已归档 Java 后端
+├── docker-compose.yml
+└── README.md
 ```
 
 ## 🚀 快速开始
 
 ### 环境要求
-- JDK 17+
+- Python 3.12+
 - Node.js 20+
-- Maven 3.8+
 - Docker & Docker Compose (可选)
 
 ### 本地开发
 
-#### 1. 克隆项目
 ```bash
-git clone <repository-url>
-cd coffeeCookie'sHomePage
+./start.sh dev
 ```
 
-#### 2. 启动后端
-```bash
-cd backend
-./mvnw spring-boot:run
-```
-后端服务将在 http://localhost:8080 启动
+- API: http://localhost:8000
+- 前端: http://localhost:3000
+- API 文档: http://localhost:8000/docs
 
-#### 3. 启动前端
+### 运行测试
+
 ```bash
-cd frontend
-npm install
-npm run dev
+cd api && pip install -r requirements.txt && PYTHONPATH=. pytest
 ```
-前端服务将在 http://localhost:3000 启动
 
 ### Docker 部署
 

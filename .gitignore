@@ -1,5 +1,9 @@
 # Compiled output
-backend/target/
+legacy/spring-boot/target/
+api/.venv/
+api/__pycache__/
+api/**/__pycache__/
+api/.pytest_cache/
 frontend/dist/
 frontend/node_modules/
 node_modules/
