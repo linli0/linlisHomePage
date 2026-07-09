@@ -1,0 +1,90 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: personal-homepage
+
+  # H2 Database (Development)
+  datasource:
+    url: jdbc:h2:file:./data/homepage_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+
+  # H2 Console (Development only)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: true
+
+  # File Upload Configuration
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+# Custom Configuration
+app:
+  # File Storage Path (Change to your desired path)
+  file:
+    storage-path: ./uploads
+    allowed-extensions: jpg,jpeg,png,gif,pdf,txt,md,zip,doc,docx,xls,xlsx
+    max-file-size: 50MB
+
+  # kimi-cli Configuration
+  kimi:
+    cli-path: kimi
+    timeout-seconds: 300
+    allowed-commands:
+      - ask
+      - chat
+
+  # Profile Information
+  profile:
+    name: Your Name
+    title: Full Stack Developer
+    email: your.email@example.com
+    github: https://github.com/yourusername
+    avatar: /api/files/avatar/default.png
+
+# Logging
+logging:
+  level:
+    com.homepage: DEBUG
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+---
+# MySQL Profile (Production)
+spring:
+  config:
+    activate:
+      on-profile: mysql
+  datasource:
+    url: jdbc:mysql://localhost:3306/homepage_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: your_password
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect

@@ -1,0 +1,123 @@
+spring:
+  application:
+    name: coffee-cookies-homepage
+
+  web:
+    resources:
+      static-locations: file:../frontend/dist/
+
+  # Database Configuration
+  datasource:
+    url: jdbc:h2:file:./data/homepage_db;DB_CLOSE_ON_EXIT=FALSE;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: true
+
+  # Jackson Configuration
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: GMT+8
+
+  # WebClient Configuration
+  codec:
+    max-in-memory-size: 10MB
+
+# Server Configuration
+server:
+  port: 8080
+  servlet:
+    context-path: /
+  # Increase timeout for AI streaming responses
+  tomcat:
+    connection-timeout: 300000 # 5 minutes
+    keep-alive-timeout: 300000
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:bXlTdXBlclNlY3JldEtleUZvckpXVFRva2VuR2VuZXJhdGlvbjEyMzQ1Njc4OQ==}
+  expiration: 86400000 # 24 hours
+
+# Site Configuration
+site:
+  password: ${SITE_PASSWORD:admin123}
+
+# Ollama Configuration
+ollama:
+  base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+  remote-url: ${OLLAMA_REMOTE_URL:}
+  remote-enabled: ${OLLAMA_REMOTE_ENABLED:false}
+  auto-switch: ${OLLAMA_AUTO_SWITCH:true}  # Automatically switch to remote when local is offline
+
+# MetalpriceAPI Configuration
+metalpriceapi:
+  api-key: ${METALPRICE_API_KEY:}
+  server: ${METALPRICE_SERVER:us}
+  enabled: ${METALPRICE_ENABLED:false}
+
+# Xiaomi Speaker Configuration
+xiaomi:
+  speaker:
+    device-ip: ${XIAOMI_DEVICE_IP:}
+    device-token: ${XIAOMI_DEVICE_TOKEN:}
+    device-model: ${XIAOMI_DEVICE_MODEL:LX06}
+    mi-account-username: ${XIAOMI_MI_ACCOUNT_USERNAME:}
+    mi-account-password: ${XIAOMI_MI_ACCOUNT_PASSWORD:}
+    enabled: ${XIAOMI_SPEAKER_ENABLED:false}
+
+# Twitter Configuration
+twitter:
+  enabled: true
+  streaming:
+    bearer-token: AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA
+  api:
+    auth-token: ${TWITTER_AUTH_TOKEN:}
+    ct0: ${TWITTER_CT0:}
+
+# Truth Social Configuration
+truth-social:
+  enabled: true
+  api:
+    enabled: true
+
+# Tweets Configuration
+tweets:
+  fallback:
+    polling:
+      enabled: true
+      interval-seconds: 300
+
+# Logging
+logging:
+  level:
+    com.coffeecookies.homepage: INFO
+    org.springframework.security: WARN
+    org.springframework.web.reactive.function.client: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
