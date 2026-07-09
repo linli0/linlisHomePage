@@ -1,136 +1,367 @@
 # linlisHomePage Roadmap
 
-本文档基于当前 `main` 分支和远端 `feature/frontend-redesign` 分支的实际状态制定后续开发计划。
+> **架构方向（2026-07）**：放弃 Spring Boot / Java 后端，迁移为 **Vue 3 + Python FastAPI** 轻量化全栈架构。  
+> 本文档替代旧版「整合 Java 分支」计划，作为当前唯一主线 roadmap。
 
-## 基线结论
+## 1. 现状与决策
 
-- 当前 `main` 分支只有标题型 `README.md`，尚未承载可运行应用、构建配置、测试或部署脚本。
-- 远端 `feature/frontend-redesign` 分支已经包含 CoffeeCookies Homepage 的主要实现：Spring Boot 3.2 后端、Vue 3 前端、Docker Compose、测试目录和项目文档。
-- 后续开发的首要目标不是从零重写，而是先恢复、验证并整理已有功能分支，再继续产品功能迭代。
+### 1.1 当前基线（`master`）
 
-## 目标状态
+| 层级 | 现状 | 问题 |
+|------|------|------|
+| 前端 | Vue 3 + TypeScript + Vite + Tailwind | 可保留，仅需适配 API |
+| 后端 | Spring Boot 3.2 + Java 17 + Maven | 启动慢、镜像大、依赖重 |
+| 数据库 | H2（开发）/ MySQL 8（生产） | 个人站点运维成本高 |
+| 部署 | Docker Compose（backend + frontend + mysql） | 3 容器 + JVM 内存占用高 |
+| 扩展模块 | AI、社交推文、量化交易、小米音箱 | 与主站耦合，增加复杂度 |
 
-项目目标是一个全栈个人主页应用，包含：
+### 1.2 架构决策
 
-- 金价追踪：实时金价、多货币、历史图表和自动刷新。
-- 内容系统：文章、分类、标签、浏览统计和搜索。
-- 工具箱：JSON、Base64、URL、哈希、时间戳和二维码工具。
-- 用户系统：JWT 登录注册、个人中心和角色管理。
-- 扩展模块：AI 对话、社交动态、量化交易、小米音箱集成等功能需要在整合后逐项验证。
+| 决策 | 选择 | 理由 |
+|------|------|------|
+| 后端语言 | **Python 3.12+** | 生态轻量、AI/工具类库丰富、开发效率高 |
+| Web 框架 | **FastAPI** | 原生 OpenAPI、异步友好、性能足够 |
+| ORM | **SQLAlchemy 2.0 + Alembic** | 成熟、迁移脚本可版本化 |
+| 默认数据库 | **SQLite**（开发 & 小规模生产） | 零运维、单文件、适合个人主页 |
+| 可选数据库 | PostgreSQL / MySQL | 仅在多实例或高并发时启用 |
+| 认证 | JWT + bcrypt（`python-jose` / `passlib`） | 对齐现有前端 Bearer Token 流程 |
+| 任务调度 | **APScheduler** 或 FastAPI `BackgroundTasks` | 替代 Spring `@Scheduled` |
+| 实时能力 | **SSE**（AI 流式）+ 轮询（推文） | 替代 STOMP WebSocket，降低复杂度 |
+| Java 后端 | **废弃** | `backend/` 进入只读归档期后删除 |
 
-## 开发阶段
+### 1.3 轻量化目标
 
-### 0. 项目状态确认
+| 指标 | Java 现状（估） | FastAPI 目标 |
+|------|----------------|--------------|
+| 后端镜像 | ~300–500 MB（JRE + fat jar） | **< 150 MB**（slim Python + wheels） |
+| 冷启动 | 15–30 s | **< 3 s** |
+| 本地内存 | 512 MB–1 GB+ | **< 256 MB** |
+| 容器数（默认） | 3（backend + mysql + frontend） | **2**（api + frontend）；SQLite 内嵌 |
+| 构建工具 | Maven + JDK 17 | **uv / pip** + Python 3.12 |
+| CI 耗时 | 后端测试 3–8 min | **< 2 min** |
 
-目标：明确 `main` 与已有开发分支的差异，冻结后续工作的事实基线。
+---
 
-交付物：
+## 2. 目标架构
 
-- 保留本 roadmap 作为项目计划入口。
-- 明确 `feature/frontend-redesign` 是当前应用实现的主要来源。
-- 列出需要进入 `main` 的目录：`backend/`、`frontend/`、`doc/`、`design/`、`docker-compose.yml`、环境示例和测试文档。
+```
+linlisHomePage/
+├── api/                          # FastAPI 后端（新）
+│   ├── app/
+│   │   ├── main.py               # 应用入口
+│   │   ├── core/                 # 配置、安全、依赖注入
+│   │   ├── models/               # SQLAlchemy 模型
+│   │   ├── schemas/              # Pydantic DTO（对齐现有 API 响应）
+│   │   ├── routers/              # 路由（按域拆分）
+│   │   ├── services/             # 业务逻辑
+│   │   └── tasks/                # 定时任务（金价刷新等）
+│   ├── alembic/                  # 数据库迁移
+│   ├── tests/                    # pytest
+│   ├── pyproject.toml            # 依赖（推荐 uv）
+│   └── Dockerfile
+├── frontend/                     # Vue 3 前端（保留，渐进适配）
+├── docker-compose.yml            # api + frontend（默认无 MySQL）
+├── doc/
+│   └── architecture/
+│       └── fastapi-overview.md   # 新架构说明（阶段 1 产出）
+├── legacy/
+│   └── spring-boot/              # 旧 Java 代码归档（过渡期）
+└── ROADMAP.md                    # 本文件
+```
 
-验收标准：
+### 2.1 技术栈对照
 
-- 团队能从 `README.md` 找到 roadmap。
-- 后续任务以“整合并验证现有实现”为第一优先级。
+| 能力 | Spring Boot（废弃） | FastAPI（目标） |
+|------|---------------------|-----------------|
+| REST API | `@RestController` | `APIRouter` |
+| DTO 校验 | Bean Validation | Pydantic v2 |
+| 持久化 | Spring Data JPA | SQLAlchemy 2.0 |
+| 迁移 | Flyway / 手动 | Alembic |
+| 安全 | Spring Security | 自定义 `Depends(get_current_user)` |
+| HTTP 客户端 | WebClient | `httpx`（异步） |
+| 定时任务 | `@Scheduled` | APScheduler |
+| AI 流式 | SSE（已有） | `StreamingResponse` + SSE |
+| 二维码 | ZXing | `qrcode` / `segno` |
+| 文档 | 手写 README | **自动生成** `/docs` `/redoc` |
 
-### 1. 主线恢复与仓库清理
+### 2.2 API 兼容策略
 
-目标：把已有全栈应用以可审查方式合入主线。
+**原则：前端尽量不改，后端保持 REST 契约。**
+
+- 保持现有路径前缀：`/api/auth`、`/api/articles`、`/api/gold-price`、`/api/tools` 等
+- 保持响应 envelope 结构（如 `{ code, data, message }`），与 `frontend/src/utils/request.ts` 解包逻辑一致
+- 用 OpenAPI spec 做契约测试，对比 Java 版与 FastAPI 版响应差异
+- 不兼容处在前端 `api/` 层做薄适配，避免散落修改 views
+
+---
+
+## 3. 功能迁移矩阵
+
+### 3.1 核心模块（MVP，必须迁移）
+
+| 模块 | Java 端点 | 优先级 | FastAPI 路由 | 备注 |
+|------|-----------|--------|--------------|------|
+| 认证 | `/api/auth/*` | P0 | `routers/auth.py` | JWT + bcrypt，废除弱默认密钥 |
+| 文章 | `/api/articles/*` | P0 | `routers/articles.py` | 含公开列表、详情、CRUD |
+| 分类/标签 | `/api/categories`, `/api/tags` | P0 | `routers/taxonomy.py` | 可合并为一个 router |
+| 金价 | `/api/gold-price/*` | P0 | `routers/gold_price.py` | httpx 拉外部 API + 本地缓存 |
+| 工具箱 | `/api/tools/*` | P0 | `routers/tools.py` | 纯计算，无 DB 依赖 |
+
+### 3.2 扩展模块（按轻量化原则分级）
+
+| 模块 | 优先级 | 策略 |
+|------|--------|------|
+| AI 对话 | P1 | 保留；`httpx` 代理 Ollama/OpenAI 兼容接口，SSE 流式 |
+| 社交推文 | P2 | **简化**：去掉 STOMP，改轮询 + 缓存表 |
+| 量化交易 | P3 | **插件化**：`api/app/plugins/quant/`，默认关闭 |
+| 小米音箱 | P3 | **插件化**：独立 router，需硬件时启用 |
+| WebSocket | — | **不迁移**；用 SSE / 轮询替代 |
+
+### 3.3 明确放弃（Java 特有冗余）
+
+- Spring Security 过滤器链 → FastAPI 中间件 + Depends
+- JPA/Hibernate 实体图与懒加载复杂度 → 显式 SQLAlchemy 关系
+- `.m2/` Maven 缓存、多模块 pom 配置
+- `source-projects/` 历史备份（迁入 `legacy/` 说明文档后删除）
+- MySQL 作为默认依赖（改为可选 profile）
+
+---
+
+## 4. 分阶段实施计划
+
+### 阶段 0 — 冻结与准备（1 周）
+
+**目标**：停止 Java 新功能开发，建立迁移基线。
+
+- [ ] 在 `README.md` 和 `AGENTS.md` 标注「Java 后端进入维护冻结，新开发走 FastAPI」
+- [ ] 导出 Java 版 OpenAPI / 接口清单（可用 SpringDoc 或手工整理现有 Controller）
+- [ ] 将 `backend/` 标记为 `legacy/spring-boot/`（或添加 `LEGACY.md` 说明）
+- [ ] 清理仓库：删除 `.m2/`、`.m2repo/`、`target/` 等构建产物
+- [ ] 确定 Python 工具链：`uv` + `pyproject.toml` + `ruff` + `pytest`
+
+**验收**：团队对迁移范围、API 契约、模块优先级达成一致。
+
+---
+
+### 阶段 1 — FastAPI 脚手架（1–2 周）
+
+**目标**：可启动的空壳 API + 健康检查 + 数据库连通。
 
 工作项：
 
-- 基于 `feature/frontend-redesign` 创建整合分支或 PR。
-- 清理不应提交的构建缓存和二进制产物，例如 `.m2/`、`.m2repo/`、`__pycache__/`、`target/`、压缩包等。
-- 校准 `.gitignore`，避免 Maven、Node、Python、IDE 和测试产物再次进入版本库。
-- 检查 `source-projects/` 是否仍需保留；若只作为迁移历史，应移动到归档说明或从主应用路径中剥离。
+```
+api/
+├── app/main.py          # FastAPI(), CORS, lifespan
+├── app/core/config.py   # pydantic-settings，读取 .env
+├── app/core/database.py # SQLAlchemy engine + session
+├── app/core/security.py # JWT 工具函数
+└── tests/test_health.py
+```
 
-验收标准：
+- [ ] 初始化 `api/` 项目，`GET /api/health` 与 `GET /api/tools/health` 返回 200
+- [ ] SQLite 默认：`DATABASE_URL=sqlite:///./data/homepage.db`
+- [ ] Alembic 初始化，创建 `users` 表迁移
+- [ ] Docker：`api` 服务替换 `backend` 服务
+- [ ] CI：新增 `api` job（`ruff check` + `pytest`）
 
-- `main` 可看到完整项目结构而不是一行 README。
-- 仓库不包含可再生成的大型缓存或编译产物。
-- README、环境示例和启动方式与实际目录一致。
+**验收**：`docker compose up` 启动 api + frontend；`/docs` 可访问；CI 绿灯。
 
-### 2. 可运行性与质量门禁
+---
 
-目标：证明后端、前端和容器化路径都能端到端运行。
+### 阶段 2 — 核心 API 迁移（2–3 周）
 
-工作项：
+**目标**：MVP 五件套（认证、文章、分类标签、金价、工具）在 FastAPI 跑通。
 
-- 后端：运行 Maven 测试，验证 Spring Boot 启动、认证、金价、文章、工具等核心接口。
-- 前端：安装依赖，运行类型检查、单元测试、组件测试和生产构建。
-- 端到端：使用 Playwright 覆盖登录、首页、文章、金价、工具箱等主流程。
-- Docker：验证 `docker-compose up -d` 后前端、后端和数据库连通。
-- CI：新增 GitHub Actions，至少覆盖后端测试、前端测试、前端构建和 Docker 构建。
+#### 2a. 认证（P0）
 
-验收标准：
+- [ ] `User` 模型：id, username, password_hash, role, created_at
+- [ ] `POST /api/auth/login` — bcrypt 验证，签发 JWT
+- [ ] `POST /api/auth/register`、`GET /api/auth/me`
+- [ ] `PUT /api/auth/profile`、`PUT /api/auth/password`
+- [ ] 移除弱默认密钥；`JWT_SECRET` 必须通过环境变量注入
+- [ ] pytest：登录成功/失败、token 过期、角色权限
 
-- 本地和 CI 都能复现同一套质量检查。
-- README 中的启动和测试命令可以直接执行。
-- 失败测试都有对应修复或明确记录的待办。
+#### 2b. 文章系统（P0）
 
-### 3. MVP 稳定化
+- [ ] 模型：`Article`, `Category`, `Tag` + 多对多关联
+- [ ] 公开接口：`/public/list`, `/public/{id}`, `/public/recent`, `/public/popular`
+- [ ] 管理接口：CRUD（需 ADMIN）
+- [ ] 数据迁移脚本：从现有 MySQL/H2 导出 → 导入 SQLite（一次性）
 
-目标：先把已有核心能力打磨到可发布状态。
+#### 2c. 金价（P0）
 
-优先模块：
+- [ ] `GoldPrice`, `ExchangeRate` 模型
+- [ ] `GET /current`, `/history`, `/currencies`
+- [ ] APScheduler：每分钟刷新金价，每小时刷新汇率
+- [ ] 外部 API 失败时的缓存兜底
 
-1. 用户系统：注册、登录、JWT 刷新/过期、权限边界和默认账号安全策略。
-2. 金价追踪：数据源失败兜底、缓存策略、汇率转换和图表加载状态。
-3. 文章系统：公开浏览、管理入口、Markdown 渲染、安全过滤和分页。
-4. 工具箱：输入校验、错误提示、复制结果和移动端交互。
-5. 部署配置：生产环境变量、MySQL 数据持久化、Nginx 配置和日志输出。
+#### 2d. 工具箱（P0）
 
-验收标准：
+- [ ] 端口所有 `/api/tools/*` 端点
+- [ ] 使用 Python 标准库 + `hashlib` + `qrcode`
+- [ ] 输入校验与错误响应格式对齐 Java 版
 
-- 关键路径有自动化测试覆盖。
-- 生产环境默认配置不暴露弱口令或硬编码密钥。
-- 主要页面在桌面和移动端均可使用。
+**验收**：
 
-### 4. 产品功能迭代
+- 前端在不改 views 的情况下可完成：登录 → 首页 → 文章列表 → 金价页 → 工具箱
+- 核心路径 pytest 覆盖率 ≥ 80%
+- 契约测试：关键接口响应 schema 与 Java 版 diff 为空
 
-目标：在稳定 MVP 之上补齐 README 中未完成的功能。
+---
 
-优先级：
+### 阶段 3 — 前端适配与 E2E（1–2 周）
 
-| 优先级 | 功能 | 依赖 | 验收标准 |
-| --- | --- | --- | --- |
-| P1 | 站内搜索 | 文章模型、索引或数据库查询 | 支持标题、摘要、标签和内容关键词搜索 |
-| P1 | 主题切换 | 前端设计系统、状态持久化 | 明暗或主题风格切换后刷新仍保留设置 |
-| P2 | 评论系统 | 用户系统、文章系统、审核策略 | 登录用户可评论，管理员可管理违规内容 |
-| P2 | 文件上传 | 存储策略、权限、大小限制 | 支持安全上传、下载和删除，拒绝危险类型 |
-| P3 | AI/社交/交易/小米音箱 | 外部服务凭据、开关配置、降级策略 | 每个模块可独立启停，外部服务不可用时不影响主站 |
+**目标**：前端完全指向 FastAPI，移除对 Java 后端的依赖。
 
-### 5. 运维与长期维护
+- [ ] `frontend/vite.config.ts` proxy 目标改为 `http://localhost:8000`
+- [ ] 检查 `request.ts` 响应解包是否与 FastAPI 一致
+- [ ] 更新 `frontend/src/api/*.ts` 中个别不兼容字段
+- [ ] Playwright E2E：登录、文章、金价、工具箱主流程
+- [ ] 更新 `start.sh` / `start.bat`：启动 `uvicorn` 而非 `mvnw`
 
-目标：让项目可以持续开发和稳定发布。
+**验收**：`npm run test:e2e` 通过；README 启动说明有效。
 
-工作项：
+---
 
-- 建立版本发布记录和变更日志。
-- 增加健康检查、结构化日志和基础监控。
-- 为生产环境补充备份、恢复和数据迁移流程。
-- 定期更新依赖，修复安全告警。
-- 将 Windows 本地路径约束改写为跨平台说明，保留确有必要的环境差异。
+### 阶段 4 — 扩展模块（按需，2–4 周）
 
-验收标准：
+**目标**：以插件方式迁移非核心能力，默认关闭。
 
-- 新开发者能按文档完成本地启动、测试和构建。
-- 部署流程有回滚和故障排查说明。
-- 每个新增功能都有测试和文档更新。
+#### 4a. AI 对话（P1）
 
-## 最近下一步
+- [ ] `routers/ai.py`：`/models`, `/chat`（SSE）, `/status`
+- [ ] `httpx` 异步代理 Ollama
+- [ ] 前端 `AIChat.vue` 验证流式输出
 
-1. 创建整合分支，对比 `main` 与 `feature/frontend-redesign` 的全部差异。
-2. 移除功能分支中的缓存、编译产物和无关归档文件。
-3. 先跑通后端测试、前端测试、前端构建和 Docker Compose。
-4. 把通过验证的全栈应用合入 `main`。
-5. 按 P1 -> P2 -> P3 顺序推进新功能。
+#### 4b. 社交推文（P2，简化版）
 
-## 风险与决策点
+- [ ] 去掉 WebSocket/STOMP
+- [ ] `GET /api/tweets/latest` + 后台轮询抓取
+- [ ] 可选：管理员手动触发 `POST /api/tweets/search`
 
-- 当前 `main` 不是可运行项目，任何新功能开发都应等待主线恢复完成。
-- 远端功能分支含有历史迁移来源和生成物，需要清理后再作为长期主线。
-- AI、社交、交易和小米音箱模块依赖外部服务，应默认支持禁用和降级。
-- 默认账号、JWT 密钥、数据库凭据必须通过环境变量管理，不能作为生产配置提交。
+#### 4c. 量化 / 小米（P3，插件）
+
+- [ ] `api/app/plugins/quant/` — `ENABLE_QUANT=true` 时挂载
+- [ ] `api/app/plugins/xiaomi/` — `ENABLE_XIAOMI=true` 时挂载
+- [ ] 文档说明：默认不启用，不影响主站启动
+
+**验收**：`ENABLE_QUANT=false` 时主站功能完整；启用插件后对应页面可用。
+
+---
+
+### 阶段 5 — 部署轻量化（1 周）
+
+**目标**：生产配置极简、可维护。
+
+- [ ] `docker-compose.yml` 默认栈：`api` + `frontend`（SQLite volume）
+- [ ] `docker-compose.prod.yml`（可选）：加 PostgreSQL
+- [ ] 后端 Dockerfile 多阶段构建，基于 `python:3.12-slim`
+- [ ] GitHub Actions：api 测试 + 前端构建 + Docker build
+- [ ] 健康检查：`/api/health` 纳入 compose healthcheck
+- [ ] 删除 Java 相关 CI job
+
+**验收**：
+
+- 单节点 `docker compose up -d` 后 30 秒内可访问
+- 镜像总体积较 Java 版减少 50%+
+
+---
+
+### 阶段 6 — 下线 Java（1 周）
+
+**目标**：彻底移除 Spring Boot 代码与依赖。
+
+- [ ] 确认所有核心 + 已启用扩展模块在 FastAPI 运行 ≥ 2 周无阻塞 bug
+- [ ] 将 `backend/` 移至 `legacy/spring-boot/` 或打 tag `v1-java-final` 后删除
+- [ ] 删除 `pom.xml`、Maven wrapper、Java Dockerfile
+- [ ] 更新全部文档：`doc/architecture/`、`AGENTS.md`、`README.md`
+- [ ] 更新 `项目架构.md` 为 FastAPI 版
+
+**验收**：仓库中无 Java 源码；新开发者无需安装 JDK/Maven。
+
+---
+
+## 5. 时间线总览
+
+```
+2026-Q3
+├── W1–2   阶段 0 + 阶段 1（脚手架）
+├── W3–5   阶段 2（核心 API）
+├── W6–7   阶段 3（前端适配 + E2E）
+├── W8–11  阶段 4（扩展模块，可并行）
+├── W12    阶段 5（部署轻量化）
+└── W13    阶段 6（下线 Java）
+```
+
+> 以上为单人/part-time 估算；全职可压缩至 4–6 周完成 MVP（阶段 0–3 + 5）。
+
+---
+
+## 6. 风险与缓解
+
+| 风险 | 影响 | 缓解措施 |
+|------|------|----------|
+| API 契约不一致导致前端大面积改动 | 高 | 先写契约测试；保持 response envelope；逐模块切换 |
+| 数据迁移丢失 | 高 | 迁移脚本 + 校验行数；保留 Java 版 DB 备份 |
+| SQLite 并发写入限制 | 中 | 个人主页场景足够；生产可切 PostgreSQL |
+| 扩展模块范围膨胀 | 中 | 插件化 + 环境变量开关；P3 模块可永久搁置 |
+| 团队不熟悉 Python 异步 | 低 | 核心路由先用同步 SQLAlchemy；热点路径再 async |
+| 测试覆盖不足导致回归 | 高 | 每个阶段强制 pytest + E2E 门禁 |
+
+---
+
+## 7. 最近下一步（本周）
+
+1. **创建 `api/` 目录**：FastAPI + uvicorn + SQLAlchemy + Alembic 最小骨架
+2. **编写 `doc/architecture/fastapi-overview.md`**：记录新架构决策
+3. **实现 `GET /api/health` + 用户表迁移 + JWT 登录**
+4. **更新 `docker-compose.yml`**：用 `api` 服务替换 `backend`，默认 SQLite
+5. **在 README 标注架构迁移状态**，冻结 Java 新功能
+
+---
+
+## 8. 成功标准（Migration Done）
+
+- [ ] 仓库无 Java 后端代码
+- [ ] `docker compose up -d` 仅 api + frontend 即可完整运行 MVP
+- [ ] 前端 E2E 测试通过
+- [ ] API 测试覆盖率 ≥ 80%（核心模块）
+- [ ] 冷启动 < 3 s，内存 < 256 MB
+- [ ] `/docs` 提供完整 OpenAPI 文档
+- [ ] 扩展模块可通过环境变量独立启停
+
+---
+
+## 附录 A — 推荐 Python 依赖
+
+```toml
+# api/pyproject.toml（草案）
+[project]
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.32",
+  "sqlalchemy>=2.0",
+  "alembic>=1.14",
+  "pydantic-settings>=2.6",
+  "python-jose[cryptography]>=3.3",
+  "passlib[bcrypt]>=1.7",
+  "httpx>=0.28",
+  "apscheduler>=3.10",
+  "qrcode[pil]>=8.0",
+]
+```
+
+## 附录 B — 目录迁移对照
+
+| 旧路径（Java） | 新路径（FastAPI） |
+|----------------|-------------------|
+| `backend/.../controller/AuthController.java` | `api/app/routers/auth.py` |
+| `backend/.../service/AuthService.java` | `api/app/services/auth.py` |
+| `backend/.../entity/User.java` | `api/app/models/user.py` |
+| `backend/.../dto/AuthResponse.java` | `api/app/schemas/auth.py` |
+| `backend/.../repository/UserRepository.java` | `api/app/services/auth.py`（SQLAlchemy 查询） |
+| `backend/src/main/resources/application.yml` | `api/app/core/config.py` + `.env` |
+
+---
+
+*最后更新：2026-07-09 · 维护者：linlisHomePage 团队*

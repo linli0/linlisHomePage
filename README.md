@@ -1,8 +1,8 @@
 # linlisHomePage (CoffeeCookies Homepage)
 
-一个基于 Spring Boot + Vue 3 的全栈个人主页应用，集成了国际金价追踪、技术文章管理和实用工具箱等功能。
+一个个人主页全栈应用，当前为 **Vue 3 + Spring Boot**（过渡期），计划迁移为 **Vue 3 + Python FastAPI** 轻量化架构。
 
-当前 `master` 分支已整合全栈应用、开发计划与 Cursor agent-skills 配置。后续开发计划见 [ROADMAP.md](ROADMAP.md)。
+> **架构迁移进行中**：详见 [ROADMAP.md](ROADMAP.md) — 放弃 Java，目标栈为 FastAPI + SQLite，默认 2 容器部署。
 
 ## Agent skills (Cursor)
 
