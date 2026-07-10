@@ -1,0 +1,1 @@
+"""Xiaomi speaker plugin package."""

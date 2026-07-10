@@ -44,6 +44,16 @@ app.include_router(tools.router, prefix="/api")
 app.include_router(ai.router, prefix="/api")
 app.include_router(tweets.router, prefix="/api")
 
+# Conditionally register quant plugin
+if os.environ.get("ENABLE_QUANT", "").lower() == "true":
+    from app.plugins.quant.router import router as quant_router
+    app.include_router(quant_router, prefix="/api")
+
+# Conditionally register xiaomi plugin
+if os.environ.get("ENABLE_XIAOMI", "").lower() == "true":
+    from app.plugins.xiaomi.router import router as xiaomi_router
+    app.include_router(xiaomi_router, prefix="/api")
+
 
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(_, exc: Exception):
