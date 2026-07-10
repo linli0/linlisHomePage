@@ -105,3 +105,38 @@ class ExchangeRate(Base):
     to_currency: Mapped[str] = mapped_column(String(10), nullable=False)
     rate: Mapped[float] = mapped_column(nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class SocialAccount(Base):
+    __tablename__ = "social_accounts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    platform: Mapped[str] = mapped_column(String(20), nullable=False)  # twitter, truth-social
+    username: Mapped[str] = mapped_column(String(100), nullable=False)
+    display_name: Mapped[str | None] = mapped_column(String(100))
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    last_polled_at: Mapped[datetime | None] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    tweets: Mapped[list["Tweet"]] = relationship(back_populates="account")
+
+
+class Tweet(Base):
+    __tablename__ = "tweets"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    tweet_id: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    platform: Mapped[str] = mapped_column(String(20), nullable=False)
+    username: Mapped[str] = mapped_column(String(100), nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    display_name: Mapped[str | None] = mapped_column(String(100))
+    likes_count: Mapped[int] = mapped_column(Integer, default=0)
+    retweets_count: Mapped[int] = mapped_column(Integer, default=0)
+    replies_count: Mapped[int] = mapped_column(Integer, default=0)
+    hashtags: Mapped[str | None] = mapped_column(Text)  # JSON array
+    mentions: Mapped[str | None] = mapped_column(Text)  # JSON array
+    media_urls: Mapped[str | None] = mapped_column(Text)  # JSON array
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    account_id: Mapped[int | None] = mapped_column(ForeignKey("social_accounts.id"))
+
+    account: Mapped[SocialAccount | None] = relationship(back_populates="tweets")

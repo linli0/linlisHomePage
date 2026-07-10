@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.core.database import SessionLocal, init_db
-from app.routers import articles, auth, categories, gold_price, health, tags, tools
+from app.routers import ai, articles, auth, categories, gold_price, health, tags, tools
 from app.schemas.common import Result
 from app.seed import seed_database
 
@@ -41,6 +41,7 @@ app.include_router(categories.router, prefix="/api")
 app.include_router(tags.router, prefix="/api")
 app.include_router(gold_price.router, prefix="/api")
 app.include_router(tools.router, prefix="/api")
+app.include_router(ai.router, prefix="/api")
 
 
 @app.exception_handler(Exception)

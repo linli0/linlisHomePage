@@ -15,6 +15,12 @@ class Settings(BaseSettings):
     metalprice_api_enabled: bool = False
     metalprice_api_key: str = ""
     timezone: str = "Asia/Shanghai"
+    
+    # Ollama AI 配置
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_remote_url: str = ""
+    ollama_remote_enabled: bool = False
+    ollama_auto_switch: bool = True
 
 
 settings = Settings()
