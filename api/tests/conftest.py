@@ -12,6 +12,8 @@ from sqlalchemy.pool import StaticPool
 from app.core.database import Base, get_db
 from app.main import app
 from app.seed import seed_database
+# Import all models to ensure they are registered with Base.metadata
+from app.models import *  # noqa: F401, F403
 
 
 @pytest.fixture()
