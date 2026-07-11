@@ -21,7 +21,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -77,10 +76,13 @@ class GoldPriceServiceConfigurationTest {
     }
 
     @Test
-    void updateGoldPrice_shouldSkipWhenMetalPriceApiDisabled() {
+    void updateGoldPrice_shouldGenerateMockPriceWhenMetalPriceApiDisabled() {
+        when(goldPriceRepository.findTopByOrderByRecordedAtDesc()).thenReturn(Optional.empty());
+        when(goldPriceRepository.save(any(GoldPrice.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
         goldPriceService.updateGoldPrice();
 
-        verifyNoInteractions(goldPriceRepository);
+        verify(goldPriceRepository).save(any(GoldPrice.class));
     }
 
     @Test

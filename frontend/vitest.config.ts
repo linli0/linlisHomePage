@@ -23,7 +23,8 @@ export default defineConfig({
       'dist',
       '.idea',
       '.git',
-      '.cache'
+      '.cache',
+      'tests/e2e/**'
     ],
     
     // Setup files
