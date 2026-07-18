@@ -14,6 +14,8 @@ export default defineConfig(({ mode }) => ({
   },
   server: {
     port: 3000,
+    // Allow Cloudflare Tunnel Host header (www.coffeecookie.online)
+    allowedHosts: ['www.coffeecookie.online', 'coffeecookie.online', 'localhost'],
     proxy: {
       '/api': {
         target: 'http://localhost:8000',

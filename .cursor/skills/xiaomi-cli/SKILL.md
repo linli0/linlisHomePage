@@ -14,8 +14,8 @@ description: >-
 2. **Control** miIO probe + cloud MIoT TTS (`siid=5,aiid=1`)
 3. **Dialogue** `POST /api/xiaomi/dialogue/utterance` + WS `/api/xiaomi/dialogue/ws`
 4. **Wake** local mic (SpeechRecognition) for「小爱小爱」; web typing always works
-5. **Routes** Panel keywords / Codex CLI / Debug / default DeepSeek
-6. **Announce** Cursor `turn_ended` / Codex `task_complete` / site AI done (toggle)
+5. **Routes** Panel keywords / Codex CLI / Debug / free-form LLM（默认 Ollama，DeepSeek 备用）
+6. **Announce** Cursor / Codex / 子 agent 可分别开关；力度 brief|detailed（方案 A）；固定话术不经 LLM
 
 ## Keywords
 
@@ -28,7 +28,7 @@ description: >-
 
 ## Env
 
-`DEEPSEEK_API_KEY`, `DEEPSEEK_MODEL`, `AI_DEFAULT_PROVIDER`, `XIAOMI_*` — see `api/.env.example`
+`AI_DEFAULT_PROVIDER=ollama`（推荐）, `DEEPSEEK_*` 可选回退, `XIAOMI_*` — see `api/.env.example`
 
 ## Half-duplex
 

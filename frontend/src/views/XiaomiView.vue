@@ -164,17 +164,38 @@
               <h3 class="settings-block__title">对话选项</h3>
               <label class="flex items-center gap-2 text-sm text-ink-600 dark:text-ink-300">
                 <input v-model="dlgSettings.announceEnabled" type="checkbox" class="accent-brand-500" @change="saveSettings" />
-                完成播报（Cursor / Codex / 本站 AI）
+                完成播报总开关
               </label>
-              <label class="flex items-center gap-2 text-sm text-ink-600 dark:text-ink-300 mt-2">
+              <div v-if="dlgSettings.announceEnabled" class="mt-2 space-y-2 pl-1">
+                <label class="flex items-center gap-2 text-sm text-ink-600 dark:text-ink-300">
+                  <input v-model="dlgSettings.announceCursor" type="checkbox" class="accent-brand-500" @change="saveSettings" />
+                  Cursor 主会话
+                </label>
+                <label class="flex items-center gap-2 text-sm text-ink-600 dark:text-ink-300">
+                  <input v-model="dlgSettings.announceCodex" type="checkbox" class="accent-brand-500" @change="saveSettings" />
+                  Codex
+                </label>
+                <label class="flex items-center gap-2 text-sm text-ink-600 dark:text-ink-300">
+                  <input v-model="dlgSettings.announceSubagent" type="checkbox" class="accent-brand-500" @change="saveSettings" />
+                  Cursor 子 agent
+                </label>
+                <div class="flex flex-wrap items-center gap-2 text-sm pt-1">
+                  <span class="text-ink-500">播报力度</span>
+                  <select v-model="dlgSettings.announceDetail" class="input !py-2 !w-auto" @change="saveSettings">
+                    <option value="brief">简短（固定句）</option>
+                    <option value="detailed">详细（摘要/末段，截断）</option>
+                  </select>
+                </div>
+              </div>
+              <label class="flex items-center gap-2 text-sm text-ink-600 dark:text-ink-300 mt-3">
                 <input v-model="dlgSettings.voiceInputEnabled" type="checkbox" class="accent-brand-500" @change="saveSettings" />
                 本地麦克风唤醒
               </label>
               <div class="flex flex-wrap items-center gap-2 text-sm mt-3">
                 <span class="text-ink-500">模型通道</span>
                 <select v-model="dlgSettings.provider" class="input !py-2 !w-auto" @change="saveSettings">
-                  <option value="deepseek">DeepSeek</option>
-                  <option value="ollama">Ollama</option>
+                  <option value="ollama">Ollama（默认）</option>
+                  <option value="deepseek">DeepSeek（备用）</option>
                 </select>
                 <span class="text-xs text-ink-400">{{ voiceInfo }}</span>
               </div>
@@ -263,7 +284,11 @@ const draft = ref('')
 const dlgSettings = reactive<DialogueSettings>({
   announceEnabled: true,
   voiceInputEnabled: true,
-  provider: 'deepseek',
+  provider: 'ollama',
+  announceCursor: true,
+  announceCodex: true,
+  announceSubagent: false,
+  announceDetail: 'brief',
 })
 const panelKeywords = ref<PanelKeyword[]>([])
 const newKw = ref('')
@@ -450,6 +475,10 @@ async function saveSettings() {
       announceEnabled: dlgSettings.announceEnabled,
       voiceInputEnabled: dlgSettings.voiceInputEnabled,
       provider: dlgSettings.provider,
+      announceCursor: dlgSettings.announceCursor,
+      announceCodex: dlgSettings.announceCodex,
+      announceSubagent: dlgSettings.announceSubagent,
+      announceDetail: dlgSettings.announceDetail,
     })
     msg.value = '设置已保存'
     msgError.value = false

@@ -2,10 +2,12 @@
 date: 2026-07-19
 topic: miai-dialogue
 branch: feature/miAi
-status: active
+status: archived
 ---
 
 # Epitaph: miAi 对话与 Xiaomi UI 收尾
+
+> 已归档。增量运维见 active：`docs/epitaph/2026-07-19-miai-ops-handoff.md`（Ollama 优先等已覆盖本文「DeepSeek primary」）。
 
 ## Built this session
 

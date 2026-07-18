@@ -29,6 +29,12 @@ async def lifespan(_: FastAPI):
                 from app.plugins.xiaomi.dialogue import settings_store
 
                 settings_store.get_or_create(db)
+                if settings_store.migrate_legacy_deepseek_default(db):
+                    import logging
+
+                    logging.getLogger(__name__).info(
+                        "dialogue provider migrated: deepseek -> ollama"
+                    )
                 panel_mod.seed_presets(db)
         finally:
             db.close()
