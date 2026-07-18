@@ -184,7 +184,8 @@ async def _handle(db: Session, text: str, *, source: str) -> dict[str, Any]:
                     and panel_action is None
                     and llm_action is None
                 ):
-                    provider = cfg.get("provider") or "deepseek"
+                    # Free-form Q&A only — wake/exit/panel/announce never reach here.
+                    provider = cfg.get("provider") or settings.ai_default_provider or "ollama"
                     llm_action = {
                         "text": text,
                         "hist": list(st.history[-12:]),

@@ -38,6 +38,10 @@ class SettingsUpdate(BaseModel):
     announceEnabled: bool | None = None
     voiceInputEnabled: bool | None = None
     provider: str | None = None
+    announceCursor: bool | None = None
+    announceCodex: bool | None = None
+    announceSubagent: bool | None = None
+    announceDetail: str | None = None
 
 
 class PanelKeywordBody(BaseModel):
@@ -117,6 +121,10 @@ def put_settings(
             announce_enabled=body.announceEnabled,
             voice_input_enabled=body.voiceInputEnabled,
             provider=body.provider,
+            announce_cursor=body.announceCursor,
+            announce_codex=body.announceCodex,
+            announce_subagent=body.announceSubagent,
+            announce_detail=body.announceDetail,
         )
         return Result.success(data)
     except ValueError as exc:

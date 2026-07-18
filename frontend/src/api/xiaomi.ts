@@ -57,6 +57,10 @@ export interface DialogueSettings {
   announceEnabled: boolean
   voiceInputEnabled: boolean
   provider: string
+  announceCursor?: boolean
+  announceCodex?: boolean
+  announceSubagent?: boolean
+  announceDetail?: 'brief' | 'detailed'
   idleSec?: number
   ttsCooldownMs?: number
 }

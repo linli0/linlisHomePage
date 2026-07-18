@@ -1,4 +1,4 @@
-"""Unified LLM chat: DeepSeek primary, Ollama fallback."""
+"""Unified LLM chat: Ollama primary, DeepSeek fallback (opt-in DeepSeek via provider)."""
 
 from __future__ import annotations
 
@@ -21,15 +21,28 @@ async def chat_complete(
     provider: str | None = None,
     max_tokens: int = 512,
 ) -> dict[str, Any]:
-    """Return { text, provider, model }."""
-    pref = (provider or settings.ai_default_provider or "deepseek").lower()
+    """Return { text, provider, model }.
+
+    Default / ollama: try Ollama first, then DeepSeek.
+    deepseek: try DeepSeek first, then Ollama.
+    """
+    pref = (provider or settings.ai_default_provider or "ollama").lower()
     if pref == "deepseek":
         try:
-            return await _deepseek_chat(prompt, system=system, history=history, max_tokens=max_tokens)
+            return await _deepseek_chat(
+                prompt, system=system, history=history, max_tokens=max_tokens
+            )
         except Exception as exc:
             logger.warning("DeepSeek failed, fallback ollama: %s", exc)
             return await _ollama_chat(prompt, system=system, history=history)
-    return await _ollama_chat(prompt, system=system, history=history)
+
+    try:
+        return await _ollama_chat(prompt, system=system, history=history)
+    except Exception as exc:
+        logger.warning("Ollama failed, fallback deepseek: %s", exc)
+        return await _deepseek_chat(
+            prompt, system=system, history=history, max_tokens=max_tokens
+        )
 
 
 async def _deepseek_chat(
@@ -61,6 +74,7 @@ async def _deepseek_chat(
         "stream": False,
     }
     headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
+    logger.info("LLM call provider=deepseek model=%s", settings.deepseek_model)
     async with httpx.AsyncClient(timeout=120.0) as client:
         resp = await client.post(url, json=payload, headers=headers)
         resp.raise_for_status()
@@ -96,6 +110,7 @@ async def _ollama_chat(
             lines.append(f"{m.get('role','user')}: {m.get('content','')}")
         full = "\n".join(lines) + f"\nuser: {prompt}\nassistant:"
 
+    logger.info("LLM call provider=ollama model=%s", model)
     async with httpx.AsyncClient(timeout=300.0) as client:
         resp = await client.post(
             f"{base}/api/generate",

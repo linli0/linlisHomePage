@@ -170,7 +170,11 @@ class XiaomiDialogueSettings(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     announce_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     voice_input_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
-    provider: Mapped[str] = mapped_column(String(20), default="deepseek")
+    provider: Mapped[str] = mapped_column(String(20), default="ollama")
+    announce_cursor: Mapped[bool] = mapped_column(Boolean, default=True)
+    announce_codex: Mapped[bool] = mapped_column(Boolean, default=True)
+    announce_subagent: Mapped[bool] = mapped_column(Boolean, default=False)
+    announce_detail: Mapped[str] = mapped_column(String(20), default="brief")  # brief|detailed
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now()
     )

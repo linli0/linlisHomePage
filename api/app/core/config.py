@@ -22,11 +22,11 @@ class Settings(BaseSettings):
     ollama_remote_enabled: bool = False
     ollama_auto_switch: bool = True
 
-    # DeepSeek（多轮对话默认提供方）
+    # LLM：默认 Ollama；DeepSeek 仅作回退或 UI 显式选择
     deepseek_api_key: str = ""
     deepseek_base_url: str = "https://api.deepseek.com"
     deepseek_model: str = "deepseek-v4-flash"
-    ai_default_provider: str = "deepseek"  # deepseek | ollama
+    ai_default_provider: str = "ollama"  # ollama | deepseek
 
     # 小爱音箱（token 仅放服务端；DID 用于云端 TTS）
     xiaomi_enabled: bool = False
