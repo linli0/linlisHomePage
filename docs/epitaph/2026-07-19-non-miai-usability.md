@@ -66,8 +66,17 @@ Login: admin / admin123
 ## Open follow-ups
 
 - 合并 PR #7
+- **Wiki 写作 UI**：公开列表只读；API 已有 create/update，缺管理员 Markdown 编辑页（Home「去写第一篇」无入口）
+- **金价历史可信度**：`gold_price.py` 历史不足时 `random.uniform` 造点 + 写死汇率；应停造假或标「示意」，主路径锁定 AU9999 元/克
+- 设置页推特关键词仍是 localStorage 死配置，与 `TweetsView`/后端采集未打通（要么接线要么删设置项）
 - 清理 `doc/deployment`、`项目架构.md` 残留 Spring 叙述
 - Vitest 进程 exit 1（MSW/happy-dom）根治
 - 裸域跳转；生产镜像冷启动/内存实测
-- 推文采集若未配置仍为空——可考虑设置页「未配置」更强引导
 - Panel/Codex/小爱深度能力另开会话
+
+## Absorbed from explore backlog (已做)
+
+- README / start.bat / FastAPI 叙事
+- 金价/首页/AI/Wiki/登录错误与空态
+- Vitest 排除 e2e + 对齐 Login/AIChat 等
+- `request` 不再对 GET 强加 JSON Content-Type；`auth` 优先展示后端中文 `message`
