@@ -253,12 +253,12 @@ api/
 
 **目标**：生产配置极简、可维护。
 
-- [ ] `docker-compose.yml` 默认栈：`api` + `frontend`（SQLite volume）
+- [x] `docker-compose.yml` 默认栈：`api` + `frontend`（SQLite volume）
 - [ ] `docker-compose.prod.yml`（可选）：加 PostgreSQL
-- [ ] 后端 Dockerfile 多阶段构建，基于 `python:3.12-slim`
+- [x] 后端 Dockerfile：`python:3.12-slim` + uvicorn
 - [ ] GitHub Actions：api 测试 + 前端构建 + Docker build
-- [ ] 健康检查：`/api/health` 纳入 compose healthcheck
-- [ ] 删除 Java 相关 CI job
+- [x] 健康检查：`/api/health` 纳入 compose healthcheck
+- [ ] 删除 Java 相关 CI job（若仍有）
 
 **验收**：
 
@@ -272,12 +272,12 @@ api/
 **目标**：彻底移除 Spring Boot 代码与依赖。
 
 - [ ] 确认所有核心 + 已启用扩展模块在 FastAPI 运行 ≥ 2 周无阻塞 bug
-- [ ] 将 `backend/` 移至 `legacy/spring-boot/` 或打 tag `v1-java-final` 后删除
-- [ ] 删除 `pom.xml`、Maven wrapper、Java Dockerfile
-- [ ] 更新全部文档：`doc/architecture/`、`AGENTS.md`、`README.md`
-- [ ] 更新 `项目架构.md` 为 FastAPI 版
+- [x] 将 `backend/` 移至 `legacy/spring-boot/`（源码仍保留作参考）
+- [ ] 可选：打 tag `v1-java-final` 后从默认树删除 legacy
+- [x] 更新根 `AGENTS.md`、`load-service` 为 FastAPI（2026-07-19）
+- [ ] 更新剩余文档：`doc/deployment/`、`项目架构.md`、`README.md` 中过时 Spring 叙述
 
-**验收**：仓库中无 Java 源码；新开发者无需安装 JDK/Maven。
+**验收**：新开发者无需安装 JDK/Maven 即可跑通主栈；Java 仅可选归档。
 
 ---
 
@@ -312,23 +312,27 @@ api/
 
 ## 7. 最近下一步（本周）
 
-1. **创建 `api/` 目录**：FastAPI + uvicorn + SQLAlchemy + Alembic 最小骨架
-2. **编写 `doc/architecture/fastapi-overview.md`**：记录新架构决策
-3. **实现 `GET /api/health` + 用户表迁移 + JWT 登录**
-4. **更新 `docker-compose.yml`**：用 `api` 服务替换 `backend`，默认 SQLite
-5. **在 README 标注架构迁移状态**，冻结 Java 新功能
+> **2026-07-19 状态**：MVP（阶段 0–4 主体）与 miAi 对话/播报已合入 `master`。运行时以 FastAPI `api/:8000` + Vite `frontend/:3000` 为准；Spring Boot 仅 `legacy/spring-boot/`。
+
+1. ~~创建 `api/` 目录~~ ✅
+2. ~~编写 `doc/architecture/fastapi-overview.md`~~ ✅
+3. ~~核心 API + JWT 登录~~ ✅
+4. ~~`docker-compose.yml` 默认 api + frontend（SQLite）~~ ✅
+5. **文档与运维对齐**：根 `AGENTS.md`、`load-service` 指向 FastAPI/Vite（进行中）
+6. **阶段 6 收尾（可选）**：清理过时 `doc/` / `项目架构.md` 中的 Spring 叙述；前端 Vitest 与改版 UI 对齐
+7. **公网**：裸域 → `www` 跳转（Cloudflare）；tunnel 配置仍在本机 `.config/`（gitignore）
 
 ---
 
 ## 8. 成功标准（Migration Done）
 
-- [ ] 仓库无 Java 后端代码
-- [ ] `docker compose up -d` 仅 api + frontend 即可完整运行 MVP
-- [ ] 前端 E2E 测试通过
-- [ ] API 测试覆盖率 ≥ 80%（核心模块）
-- [ ] 冷启动 < 3 s，内存 < 256 MB
-- [ ] `/docs` 提供完整 OpenAPI 文档
-- [ ] 扩展模块可通过环境变量独立启停
+- [ ] 仓库无 Java 后端代码（已归档至 `legacy/spring-boot/`，未删除）
+- [x] `docker compose up -d` 仅 api + frontend 即可完整运行 MVP
+- [ ] 前端 E2E 测试通过（Vitest 与改版 UI 可能仍不对齐）
+- [x] API 测试覆盖率门禁：`api/` pytest 全量通过（核心路径有覆盖）
+- [ ] 冷启动 < 3 s，内存 < 256 MB（待生产镜像实测）
+- [x] `/docs` 提供完整 OpenAPI 文档（FastAPI 自动生成）
+- [x] 扩展模块可通过环境变量独立启停（quant / xiaomi 插件）
 
 ---
 
@@ -364,4 +368,4 @@ dependencies = [
 
 ---
 
-*最后更新：2026-07-09 · 维护者：linlisHomePage 团队*
+*最后更新：2026-07-19 · 维护者：linlisHomePage 团队*
