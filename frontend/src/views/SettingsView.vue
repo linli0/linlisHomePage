@@ -6,10 +6,14 @@
     <div class="space-y-6">
       <section class="card p-6 space-y-4">
         <h2 class="font-semibold text-ink-900 dark:text-white">AI</h2>
+        <p class="text-sm text-ink-500 leading-relaxed">
+          对话页默认走本地 Ollama。这里的「默认模型」只保存在本浏览器，需与 <code class="font-mono text-xs">ollama list</code> 中的名称一致。
+        </p>
         <div>
           <label class="text-sm text-ink-500 mb-1.5 block">默认模型</label>
-          <input v-model="aiModel" class="input" @change="saveAi" />
+          <input v-model="aiModel" class="input" placeholder="例如 qwen2.5:7b" @change="saveAi" />
         </div>
+        <router-link to="/ai" class="text-sm font-medium text-brand-600 hover:text-brand-500">打开 AI 对话页 →</router-link>
       </section>
 
       <section class="card p-6 space-y-3">

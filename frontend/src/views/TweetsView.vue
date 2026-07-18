@@ -25,7 +25,14 @@
     </form>
 
     <div v-if="loading" class="text-ink-400 text-center py-12">加载中…</div>
-    <div v-else-if="tweets.length === 0" class="card p-12 text-center text-ink-400">暂无推文</div>
+    <div v-else-if="loadError" class="card p-10 text-center space-y-3">
+      <p class="text-ink-600">{{ loadError }}</p>
+      <button type="button" class="btn-primary" @click="loadLatest">重试</button>
+    </div>
+    <div v-else-if="tweets.length === 0" class="card p-12 text-center space-y-2">
+      <p class="text-ink-600 font-medium">暂无推文</p>
+      <p class="text-sm text-ink-400">未配置采集源时列表为空；可在设置页填写关键词后，由后端轮询抓取。</p>
+    </div>
     <div v-else class="space-y-4">
       <TweetCard v-for="t in tweets" :key="t.id" :tweet="t" />
     </div>
@@ -42,15 +49,18 @@ const tweets = ref<TweetDTO[]>([])
 const stats = ref<TweetStatsDTO | null>(null)
 const keyword = ref('')
 const loading = ref(false)
+const loadError = ref('')
 
 async function loadLatest() {
   loading.value = true
+  loadError.value = ''
   try {
     const res = await tweetsApi.getLatest({ limit: 30 })
     tweets.value = res.data.data ?? []
   } catch (e) {
     console.error(e)
     tweets.value = []
+    loadError.value = '推文加载失败，请确认 API 已启动。'
   } finally {
     loading.value = false
   }
@@ -62,11 +72,13 @@ async function doSearch() {
     return
   }
   loading.value = true
+  loadError.value = ''
   try {
     const res = await tweetsApi.search({ keyword: keyword.value.trim(), limit: 30 })
     tweets.value = res.data.data ?? []
   } catch (e) {
     console.error(e)
+    loadError.value = '搜索失败，请稍后重试。'
   } finally {
     loading.value = false
   }
