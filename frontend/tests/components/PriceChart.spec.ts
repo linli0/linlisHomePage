@@ -51,7 +51,6 @@ describe('PriceChart', () => {
   const defaultProps = {
     data: mockPriceData,
     currency: 'USD',
-    symbol: '$'
   }
 
   test('should render with required props', () => {
@@ -78,24 +77,16 @@ describe('PriceChart', () => {
     expect(wrapper.props('currency')).toBe('USD')
   })
 
-  test('should accept symbol prop', () => {
-    const wrapper = mount(PriceChart, {
-      props: defaultProps
-    })
-    
-    expect(wrapper.props('symbol')).toBe('$')
-  })
-
   test('should handle empty data', () => {
     const wrapper = mount(PriceChart, {
       props: {
         data: [],
         currency: 'USD',
-        symbol: '$'
       }
     })
     
     expect(wrapper.exists()).toBe(true)
+    expect(wrapper.text()).toContain('暂无走势数据')
   })
 
   test('should handle different currencies', () => {
@@ -103,12 +94,10 @@ describe('PriceChart', () => {
       props: {
         data: mockPriceData,
         currency: 'CNY',
-        symbol: '¥'
       }
     })
     
     expect(wrapper.props('currency')).toBe('CNY')
-    expect(wrapper.props('symbol')).toBe('¥')
   })
 
   test('should update when data changes', async () => {

@@ -23,7 +23,12 @@ export default defineConfig({
       'dist',
       '.idea',
       '.git',
-      '.cache'
+      '.cache',
+      // Playwright e2e specs — run via npm run test:e2e
+      'tests/e2e/**',
+      // Legacy layout components removed in coffee UI rewrite
+      'tests/components/FooterBar.spec.ts',
+      'tests/components/NavigationBar.spec.ts',
     ],
     
     // Setup files

@@ -72,7 +72,7 @@ describe('ProfileView', () => {
     expect(wrapper.html()).toBeTruthy()
   })
 
-  test('should have form inputs', async () => {
+  test('should show profile details when user is loaded', async () => {
     router.push('/profile')
     await router.isReady()
     
@@ -81,8 +81,18 @@ describe('ProfileView', () => {
         plugins: [router, pinia]
       }
     })
+
+    const authStore = wrapper.vm.authStore
+    authStore.user = {
+      id: 1,
+      username: 'testuser',
+      email: 'test@example.com',
+      displayName: 'Test User',
+      role: 'USER',
+    }
+    await wrapper.vm.$nextTick()
     
-    const inputs = wrapper.findAll('input')
-    expect(inputs.length).toBeGreaterThan(0)
+    expect(wrapper.text()).toContain('个人中心')
+    expect(wrapper.text()).toContain('testuser')
   })
 })

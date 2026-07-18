@@ -37,7 +37,7 @@ describe('Auth Store', () => {
     it('should have correct initial loading state', () => {
       const store = useAuthStore()
       expect(store.loading).toBe(false)
-      expect(store.error).toBeNull()
+      expect(store.error).toBe('')
     })
   })
 
