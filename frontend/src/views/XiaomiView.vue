@@ -1,569 +1,862 @@
 <template>
-  <div class="min-h-screen bg-surface-50 dark:bg-surface-950 py-8">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="mb-10">
-        <span class="inline-block px-4 py-1.5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-sm font-medium mb-4">
-          智能音箱
-        </span>
-        <h1 class="text-4xl md:text-5xl font-bold text-surface-900 dark:text-white mb-4">
-          小爱<span class="gradient-text">音箱控制</span>
-        </h1>
-        <p class="text-lg text-surface-600 dark:text-surface-400 max-w-2xl">
-          控制小爱音箱 Pro (LX06)，支持语音对话和 TTS 语音合成
+  <div
+    class="xiaomi-page"
+    :class="{
+      'xiaomi-page--tts': speaking,
+      'xiaomi-page--user': userListening && !speaking,
+    }"
+  >
+    <div class="wave-overlay" aria-hidden="true">
+      <div class="wave-layer wave-layer--back" />
+      <div class="wave-layer wave-layer--front" />
+    </div>
+
+    <header class="xiaomi-hero">
+      <div class="xiaomi-hero-inner">
+        <p class="xiaomi-kicker">CoffeeCookies · 小爱</p>
+        <h1 class="page-title !text-brand-50">小爱对话台</h1>
+        <p class="mt-2 text-brand-100/80 max-w-xl text-sm md:text-base leading-relaxed">
+          网页切模式、打字对话；音箱负责播报。DeepSeek 作答，完成提醒可关。
         </p>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- 设备状态面板 -->
-        <div class="card-hover p-6 lg:col-span-1">
-          <div class="flex items-center gap-4 mb-6">
-            <div class="relative">
-              <div class="absolute inset-0 bg-orange-400/20 rounded-xl blur-lg"></div>
-              <div class="relative w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
-                <span class="text-2xl">🔊</span>
-              </div>
-            </div>
-            <div>
-              <h2 class="text-xl font-bold text-surface-900 dark:text-white">设备状态</h2>
-              <div class="flex items-center gap-2 text-sm">
-                <span 
-                  :class="[
-                    'relative flex h-2 w-2',
-                    deviceStatus === 'online' ? 'text-green-500' : 'text-red-500'
-                  ]"
-                >
-                  <span 
-                    :class="[
-                      'absolute inline-flex h-full w-full rounded-full opacity-75',
-                      deviceStatus === 'online' ? 'bg-green-400 animate-ping' : 'bg-red-400'
-                    ]"
-                  ></span>
-                  <span 
-                    :class="[
-                      'relative inline-flex rounded-full h-2 w-2',
-                      deviceStatus === 'online' ? 'bg-green-500' : 'bg-red-500'
-                    ]"
-                  ></span>
-                </span>
-                <span :class="deviceStatus === 'online' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
-                  {{ deviceStatus === 'online' ? '在线' : '离线' }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 设备信息 -->
-          <div v-if="deviceInfo" class="space-y-4 mb-6">
-            <div class="p-4 bg-surface-100 dark:bg-surface-800 rounded-xl">
-              <div class="flex items-center gap-3 mb-3">
-                <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                <span class="text-sm font-medium text-surface-700 dark:text-surface-300">设备信息</span>
-              </div>
-              <div class="space-y-2 text-sm">
-                <div class="flex justify-between">
-                  <span class="text-surface-500 dark:text-surface-400">名称</span>
-                  <span class="text-surface-900 dark:text-white font-medium">{{ deviceInfo.name }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-surface-500 dark:text-surface-400">型号</span>
-                  <span class="text-surface-900 dark:text-white font-medium">{{ deviceInfo.model }}</span>
-                </div>
-                <div v-if="deviceInfo.lastSeen" class="flex justify-between">
-                  <span class="text-surface-500 dark:text-surface-400">最后在线</span>
-                  <span class="text-surface-900 dark:text-white font-medium">{{ deviceInfo.lastSeen }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 音量控制 -->
-          <div class="mb-6">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-sm font-medium text-surface-700 dark:text-surface-300">音量</span>
-              <span class="text-sm text-surface-500 dark:text-surface-400">{{ volume }}%</span>
-            </div>
-            <div class="flex items-center gap-3">
-              <button 
-                @click="decreaseVolume" 
-                class="btn-secondary p-2"
-                :disabled="volume <= 0"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
-                </svg>
-              </button>
-              <input
-                v-model.number="volume"
-                type="range"
-                min="0"
-                max="100"
-                class="flex-1 h-2 bg-surface-200 dark:bg-surface-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
-                @change="setVolume"
-              />
-              <button 
-                @click="increaseVolume" 
-                class="btn-secondary p-2"
-                :disabled="volume >= 100"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- 播放控制 -->
-          <div class="flex gap-2">
-            <button @click="playAudio" class="btn-primary flex-1 flex items-center justify-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              播放
-            </button>
-            <button @click="pauseAudio" class="btn-secondary flex-1 flex items-center justify-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              暂停
-            </button>
-            <button @click="stopAudio" class="btn-secondary flex-1 flex items-center justify-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-              </svg>
-              停止
-            </button>
-          </div>
-
-          <!-- 刷新状态按钮 -->
-          <button 
-            @click="checkStatus" 
-            class="btn-secondary w-full mt-4 flex items-center justify-center gap-2"
-            :disabled="isRefreshing"
+        <div class="mt-5 flex flex-wrap items-center gap-3 text-sm">
+          <span
+            class="inline-flex items-center gap-2 rounded-full px-3 py-1 bg-black/20 text-brand-50"
           >
-            <svg class="w-4 h-4" :class="{ 'animate-spin': isRefreshing }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            刷新状态
+            <span
+              class="w-2 h-2 rounded-full"
+              :class="status?.connected ? 'bg-emerald-400' : 'bg-ink-400'"
+            />
+            {{ status?.connected ? (status.device?.name || '音箱在线') : (status?.error || '未连接') }}
+          </span>
+          <span v-if="speaking" class="text-amber-200/90 text-xs tracking-wide">播报中 · 麦克暂停</span>
+          <span v-else-if="userListening" class="text-emerald-200/90 text-xs tracking-wide">聆听中 · 请说话</span>
+          <span class="text-brand-100/50 font-mono text-xs">{{ status?.device?.ip || '—' }}</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-wrap max-w-3xl !pt-8 !pb-16 -mt-8 relative z-10">
+      <!-- Mode switch -->
+      <section class="card p-3 mb-5 shadow-sm">
+        <div class="flex items-center justify-between gap-3 px-1 mb-2">
+          <h2 class="font-display text-lg text-ink-900 dark:text-white">对话模式</h2>
+          <button type="button" class="btn-ghost btn-sm" :disabled="busy" @click="refreshAll">刷新状态</button>
+        </div>
+        <div class="mode-seg" role="tablist" aria-label="对话模式">
+          <button
+            v-for="m in modes"
+            :key="m.id"
+            type="button"
+            role="tab"
+            class="mode-seg__btn"
+            :class="{ 'mode-seg__btn--on': activeMode === m.id }"
+            :aria-selected="activeMode === m.id"
+            :disabled="busy"
+            @click="switchMode(m.id)"
+          >
+            {{ m.label }}
           </button>
         </div>
+        <p class="px-1 pt-2 text-xs text-ink-400">{{ modeHint }}</p>
+      </section>
 
-        <!-- TTS 和 AI 对话面板 -->
-        <div class="card-hover p-6 lg:col-span-2">
-          <!-- TTS 部分 -->
-          <div class="mb-8">
-            <div class="flex items-center gap-4 mb-4">
-              <div class="relative">
-                <div class="absolute inset-0 bg-primary-400/20 rounded-xl blur-lg"></div>
-                <div class="relative w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <span class="text-xl">📢</span>
-                </div>
-              </div>
-              <div>
-                <h3 class="text-lg font-bold text-surface-900 dark:text-white">语音合成 (TTS)</h3>
-                <p class="text-sm text-surface-500 dark:text-surface-400">输入文本，音箱将朗读</p>
-              </div>
-            </div>
-            
-            <div class="flex gap-3">
-              <textarea
-                v-model="ttsText"
-                placeholder="输入要朗读的文本..."
-                class="input flex-1 resize-none"
-                rows="2"
-                :disabled="isTtsLoading"
-              ></textarea>
-              <button 
-                @click="playTts" 
-                class="btn-primary px-6 self-end"
-                :disabled="isTtsLoading || !ttsText.trim()"
-              >
-                <span v-if="isTtsLoading" class="flex items-center gap-2">
-                  <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                </span>
-                <span v-else class="flex items-center gap-2">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                  </svg>
-                  播放
-                </span>
-              </button>
-            </div>
+      <!-- Chat -->
+      <section class="card overflow-hidden mb-5 shadow-sm">
+        <div class="px-5 pt-4 pb-3 border-b border-ink-100 dark:border-ink-800 flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <h2 class="font-display text-lg text-ink-900 dark:text-white">对话</h2>
+            <span class="text-xs text-ink-400">当前 · {{ routeLabel }}</span>
           </div>
-
-          <hr class="border-surface-200 dark:border-surface-700 my-6" />
-
-          <!-- AI 对话部分 -->
-          <div>
-            <div class="flex items-center gap-4 mb-4">
-              <div class="relative">
-                <div class="absolute inset-0 bg-accent-400/20 rounded-xl blur-lg"></div>
-                <div class="relative w-10 h-10 bg-gradient-to-br from-accent-400 to-accent-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <span class="text-xl">🤖</span>
-                </div>
-              </div>
-              <div>
-                <h3 class="text-lg font-bold text-surface-900 dark:text-white">AI 对话</h3>
-                <p class="text-sm text-surface-500 dark:text-surface-400">与 AI 智能对话，答案将通过音箱播放</p>
-              </div>
-            </div>
-
-            <div ref="messagesContainer" class="bg-surface-100 dark:bg-surface-800/50 rounded-2xl p-4 mb-4 min-h-[250px] max-h-[350px] overflow-y-auto border border-surface-200 dark:border-surface-700">
-              <div v-if="messages.length === 0" class="h-full flex flex-col items-center justify-center text-surface-400 py-8">
-                <svg class="w-12 h-12 mb-3 text-surface-300 dark:text-surface-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                </svg>
-                <p class="text-sm">开始与 AI 对话</p>
-              </div>
-              
-              <div v-else class="space-y-4">
-                <div 
-                  v-for="(message, index) in messages" 
-                  :key="index"
-                  class="flex gap-3"
-                  :class="message.role === 'user' ? 'flex-row-reverse' : 'flex-row'"
-                >
-                  <div 
-                    class="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs"
-                    :class="message.role === 'user' 
-                      ? 'bg-gradient-to-br from-primary-400 to-primary-600 text-white' 
-                      : 'bg-gradient-to-br from-accent-400 to-accent-600 text-white'"
-                  >
-                    {{ message.role === 'user' ? '你' : 'AI' }}
-                  </div>
-                  <div 
-                    class="max-w-[80%] rounded-xl px-4 py-2 text-sm"
-                    :class="message.role === 'user' 
-                      ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white' 
-                      : 'bg-white dark:bg-surface-800 text-surface-900 dark:text-white shadow-soft border border-surface-200 dark:border-surface-700'"
-                  >
-                    {{ message.content }}
-                  </div>
-                </div>
-                
-                <div v-if="streamingContent" class="flex gap-3">
-                  <div class="flex-shrink-0 w-7 h-7 rounded-lg bg-gradient-to-br from-accent-400 to-accent-600 text-white flex items-center justify-center text-xs">
-                    AI
-                  </div>
-                  <div class="max-w-[80%] rounded-xl px-4 py-2 text-sm bg-white dark:bg-surface-800 text-surface-900 dark:text-white shadow-soft border border-surface-200 dark:border-surface-700">
-                    {{ streamingContent }}<span class="inline-block w-1.5 h-3 bg-accent-500 animate-pulse ml-1 rounded-sm"></span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="flex gap-3">
-              <textarea
-                v-model="inputMessage"
-                placeholder="输入消息... (按 Enter 发送，Shift + Enter 换行)"
-                class="input flex-1 resize-none"
-                rows="2"
-                :disabled="isChatLoading"
-                @keydown.enter.prevent="sendMessage"
-              ></textarea>
-              <button 
-                @click="sendMessage" 
-                class="btn-primary px-6 self-end"
-                :disabled="isChatLoading || !inputMessage.trim()"
-              >
-                <span v-if="isChatLoading" class="flex items-center gap-2">
-                  <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                </span>
-                <span v-else class="flex items-center gap-2">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                  </svg>
-                  发送
-                </span>
-              </button>
-            </div>
-
-            <div class="flex items-center gap-4 mt-4">
-              <label class="flex items-center gap-2 text-sm text-surface-600 dark:text-surface-400">
-                <input 
-                  v-model="autoPlayResponse" 
-                  type="checkbox" 
-                  class="w-4 h-4 rounded border-surface-300 text-orange-500 focus:ring-orange-500 dark:border-surface-600 dark:bg-surface-800"
-                />
-                自动播放 AI 回答
-              </label>
-              <button 
-                @click="clearChat" 
-                class="text-sm text-red-500 hover:text-red-600 dark:hover:text-red-400"
-              >
-                清空对话
-              </button>
+          <button
+            type="button"
+            class="btn-ghost btn-sm shrink-0"
+            aria-label="打开设置"
+            @click="showSettings = true"
+          >
+            设置
+          </button>
+        </div>
+        <div ref="logEl" class="chat-log px-5 py-4 space-y-3">
+          <p v-if="!messages.length" class="text-sm text-ink-400 text-center py-10">
+            选好模式后，在下方输入即可。也可说「小爱小爱」用语音进入多轮。
+          </p>
+          <div
+            v-for="(m, i) in messages"
+            :key="m.id ?? i"
+            class="flex"
+            :class="m.role === 'user' ? 'justify-end' : 'justify-start'"
+          >
+            <div
+              class="chat-bubble"
+              :class="{
+                'chat-bubble--user': m.role === 'user',
+                'chat-bubble--bot': m.role === 'assistant' || m.role === 'system',
+              }"
+            >
+              <p class="whitespace-pre-wrap break-words">{{ m.content }}</p>
+              <p v-if="m.route || m.provider" class="chat-meta">
+                {{ m.route }}<template v-if="m.provider"> · {{ m.provider }}</template>
+              </p>
             </div>
           </div>
         </div>
-      </div>
+        <form class="chat-composer" @submit.prevent="sendChat">
+          <input
+            v-model="draft"
+            class="input !rounded-none !border-0 !shadow-none flex-1 !py-4"
+            placeholder="输入消息，Enter 发送…"
+            :disabled="busy"
+          />
+          <button type="submit" class="btn-primary !rounded-none px-6" :disabled="busy || !draft.trim()">
+            发送
+          </button>
+        </form>
+      </section>
 
-      <!-- 错误提示 -->
-      <div v-if="errorMessage" class="mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-300 rounded-xl text-sm flex items-start gap-3">
-        <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <span>{{ errorMessage }}</span>
-      </div>
+      <p v-if="msg" class="text-sm" :class="msgError ? 'text-red-600' : 'text-ink-500'">{{ msg }}</p>
     </div>
+
+    <Teleport to="body">
+      <div
+        v-if="showSettings"
+        class="settings-backdrop"
+        role="dialog"
+        aria-modal="true"
+        aria-label="小爱设置"
+        @click.self="showSettings = false"
+      >
+        <aside class="settings-panel">
+          <div class="settings-panel__head">
+            <h2 class="font-display text-lg text-ink-900 dark:text-white">设置与控制</h2>
+            <button type="button" class="btn-ghost btn-sm" @click="showSettings = false">关闭</button>
+          </div>
+
+          <div class="settings-panel__body">
+            <section class="settings-block">
+              <h3 class="settings-block__title">音箱控制</h3>
+              <div class="flex flex-wrap gap-2 mb-3">
+                <button type="button" class="btn-outline btn-sm" :disabled="busy || !canControl" @click="doWake">唤醒</button>
+                <button type="button" class="btn-outline btn-sm" :disabled="busy || !canControl" @click="run('stop')">停止</button>
+              </div>
+              <div class="flex gap-2 mb-4">
+                <input v-model="ttsText" class="input flex-1" placeholder="直接让音箱说…" :disabled="!canControl" />
+                <button type="button" class="btn-primary btn-sm" :disabled="busy || !canControl || !ttsText.trim()" @click="doTts">
+                  播报
+                </button>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-xs text-ink-400 w-10">音量</span>
+                <input
+                  v-model.number="volume"
+                  type="range"
+                  min="0"
+                  max="100"
+                  class="flex-1 accent-brand-500"
+                  :disabled="!canControl || volBusy"
+                  @input="onVolumeInput"
+                />
+                <span class="text-xs font-mono text-ink-500 w-8">{{ volume }}</span>
+              </div>
+              <p v-if="volMsg" class="mt-2 text-xs" :class="volError ? 'text-red-600' : 'text-ink-400'">{{ volMsg }}</p>
+            </section>
+
+            <section v-if="auth.isAdmin" class="settings-block">
+              <h3 class="settings-block__title">对话选项</h3>
+              <label class="flex items-center gap-2 text-sm text-ink-600 dark:text-ink-300">
+                <input v-model="dlgSettings.announceEnabled" type="checkbox" class="accent-brand-500" @change="saveSettings" />
+                完成播报（Cursor / Codex / 本站 AI）
+              </label>
+              <label class="flex items-center gap-2 text-sm text-ink-600 dark:text-ink-300 mt-2">
+                <input v-model="dlgSettings.voiceInputEnabled" type="checkbox" class="accent-brand-500" @change="saveSettings" />
+                本地麦克风唤醒
+              </label>
+              <div class="flex flex-wrap items-center gap-2 text-sm mt-3">
+                <span class="text-ink-500">模型通道</span>
+                <select v-model="dlgSettings.provider" class="input !py-2 !w-auto" @change="saveSettings">
+                  <option value="deepseek">DeepSeek</option>
+                  <option value="ollama">Ollama</option>
+                </select>
+                <span class="text-xs text-ink-400">{{ voiceInfo }}</span>
+              </div>
+            </section>
+
+            <section v-if="auth.isAdmin" class="settings-block">
+              <h3 class="settings-block__title">Panel 关键词</h3>
+              <ul class="text-sm space-y-2 mb-3">
+                <li
+                  v-for="k in panelKeywords"
+                  :key="k.id"
+                  class="flex justify-between gap-2 py-1.5 border-b border-ink-50 dark:border-ink-800"
+                >
+                  <span><span class="font-mono text-xs text-brand-700">{{ k.keyword }}</span> → {{ k.actionType }}</span>
+                  <button type="button" class="text-xs text-ink-400 hover:text-red-600" @click="removeKeyword(k.id)">删除</button>
+                </li>
+              </ul>
+              <div class="flex flex-wrap gap-2">
+                <input v-model="newKw" class="input !py-2 !w-36" placeholder="关键词" />
+                <select v-model="newAction" class="input !py-2 !w-auto">
+                  <option value="gold_price">今日金价</option>
+                  <option value="gold_refresh">刷新金价</option>
+                  <option value="speaker_status">音箱状态</option>
+                  <option value="say">自定义播报</option>
+                  <option value="help">帮助</option>
+                </select>
+                <input v-if="newAction === 'say'" v-model="newSay" class="input !py-2 !w-36" placeholder="播报文本" />
+                <button type="button" class="btn-outline btn-sm" @click="addKeyword">添加</button>
+              </div>
+            </section>
+
+            <section v-if="auth.isAdmin" class="settings-block">
+              <h3 class="settings-block__title">账号绑定</h3>
+              <div v-if="account?.bound" class="text-sm text-ink-500">
+                {{ account.device?.name }} · {{ account.device?.ip }} · {{ account.device?.model }}
+                <button type="button" class="btn-outline btn-sm ml-2" :disabled="busy" @click="doUnbind">解绑</button>
+              </div>
+              <template v-else>
+                <div v-if="bindStep === 'login'" class="space-y-2 max-w-sm">
+                  <input v-model="miUser" class="input !py-2" placeholder="小米账号" />
+                  <input v-model="miPass" class="input !py-2" type="password" placeholder="密码" />
+                  <button type="button" class="btn-primary btn-sm" :disabled="busy" @click="doLogin">登录</button>
+                </div>
+                <div v-else-if="bindStep === 'sms'" class="space-y-2 max-w-sm">
+                  <input v-model="smsCode" class="input !py-2" placeholder="短信验证码" />
+                  <button type="button" class="btn-primary btn-sm" :disabled="busy" @click="doVerify">验证</button>
+                </div>
+                <ul v-else class="space-y-2 text-sm">
+                  <li v-for="d in cloudDevices" :key="d.did" class="flex justify-between gap-2">
+                    <span>{{ d.name }} · {{ d.ip }}</span>
+                    <button type="button" class="btn-primary btn-sm" :disabled="!d.hasToken || !d.ip" @click="doBind(d.did)">绑定</button>
+                  </li>
+                </ul>
+              </template>
+            </section>
+          </div>
+        </aside>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
-import { xiaomiApi, type XiaomiDevice } from '@/api/xiaomi'
+import { ref, computed, onMounted, onUnmounted, nextTick, reactive } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import {
+  xiaomiApi,
+  type XiaomiStatus,
+  type AccountStatus,
+  type CloudDevice,
+  type ChatMessage,
+  type DialogueSettings,
+  type PanelKeyword,
+} from '@/api/xiaomi'
 
-interface Message {
-  role: 'user' | 'assistant'
-  content: string
-  timestamp?: number
-}
+const auth = useAuthStore()
+const status = ref<XiaomiStatus | null>(null)
+const account = ref<AccountStatus | null>(null)
+const canControl = ref(false)
+const route = ref('idle')
+const speaking = ref(false)
+const userListening = ref(false)
+const showSettings = ref(false)
+const messages = ref<ChatMessage[]>([])
+const draft = ref('')
+const dlgSettings = reactive<DialogueSettings>({
+  announceEnabled: true,
+  voiceInputEnabled: true,
+  provider: 'deepseek',
+})
+const panelKeywords = ref<PanelKeyword[]>([])
+const newKw = ref('')
+const newAction = ref('gold_price')
+const newSay = ref('')
+const voiceInfo = ref('')
 
-// LocalStorage keys
-const STORAGE_KEY_MESSAGES = 'xiaomi_chat_messages'
-const STORAGE_KEY_VOLUME = 'xiaomi_volume'
+const bindStep = ref<'login' | 'sms' | 'pick'>('login')
+const sessionId = ref('')
+const miUser = ref('')
+const miPass = ref('')
+const smsCode = ref('')
+const cloudDevices = ref<CloudDevice[]>([])
 
-const deviceStatus = ref<'online' | 'offline'>('offline')
-const deviceInfo = ref<XiaomiDevice | null>(null)
+const ttsText = ref('你好，我是 CoffeeCookies')
 const volume = ref(50)
-const isRefreshing = ref(false)
-const errorMessage = ref('')
+const volBusy = ref(false)
+const volMsg = ref('')
+const volError = ref(false)
+const busy = ref(false)
+const msg = ref('')
+const msgError = ref(false)
+const logEl = ref<HTMLElement | null>(null)
 
-// TTS
-const ttsText = ref('')
-const isTtsLoading = ref(false)
+let ws: WebSocket | null = null
+let volTimer: ReturnType<typeof setTimeout> | null = null
 
-// Chat
-const messages = ref<Message[]>([])
-const inputMessage = ref('')
-const streamingContent = ref('')
-const isChatLoading = ref(false)
-const autoPlayResponse = ref(true)
-const messagesContainer = ref<HTMLDivElement>()
+function applyStatus(data: { route?: string; speaking?: boolean; listening?: boolean }) {
+  if (data.route) route.value = data.route
+  speaking.value = !!data.speaking
+  userListening.value = !!data.listening
+}
 
-// Load messages from localStorage
-function loadMessages(): void {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY_MESSAGES)
-    if (saved) {
-      messages.value = JSON.parse(saved)
+const modes = [
+  { id: 'idle', label: '空闲' },
+  { id: 'multi', label: '多轮' },
+  { id: 'panel', label: 'Panel' },
+  { id: 'codex', label: 'Codex' },
+  { id: 'debug', label: '调试' },
+] as const
+
+const MODE_IDS = new Set(['idle', 'multi', 'panel', 'codex', 'debug'])
+
+const activeMode = computed(() =>
+  MODE_IDS.has(route.value) ? route.value : 'idle',
+)
+
+const routeLabel = computed(() => {
+  const m: Record<string, string> = {
+    idle: '空闲',
+    multi: '多轮',
+    codex: 'Codex',
+    panel: 'Panel',
+    debug: '调试',
+    speaking: '播报中',
+  }
+  return m[route.value] || route.value
+})
+
+const modeHint = computed(() => {
+  const h: Record<string, string> = {
+    idle: '不处理开放问答；点「多轮」或说小爱小爱开始。',
+    multi: '开放问答走 DeepSeek；也可再切 Panel / Codex。',
+    panel: '按关键词执行网站动作，如「今日金价」。',
+    codex: '后续消息发给本机 Codex（最近 session）。',
+    debug: 'Panel 关键词与 Codex 入口同时可用。',
+  }
+  return h[activeMode.value] || ''
+})
+
+function errDetail(e: unknown): string {
+  const any = e as { response?: { data?: { detail?: string; message?: string } }; message?: string }
+  const d = any?.response?.data?.detail
+  if (typeof d === 'string') return d
+  return any?.response?.data?.message || any?.message || '请求失败'
+}
+
+async function scrollLog() {
+  await nextTick()
+  if (logEl.value) logEl.value.scrollTop = logEl.value.scrollHeight
+}
+
+function connectWs() {
+  const token = localStorage.getItem('token')
+  if (!token) return
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws'
+  const url = `${proto}://${location.host}/api/xiaomi/dialogue/ws?token=${encodeURIComponent(token)}`
+  ws = new WebSocket(url)
+  ws.onmessage = (ev) => {
+    try {
+      const data = JSON.parse(ev.data)
+      if (data.type === 'hello') {
+        applyStatus(data.status || {})
+        if (Array.isArray(data.messages)) messages.value = data.messages
+        scrollLog()
+      } else if (data.type === 'message') {
+        messages.value.push({
+          id: data.id,
+          role: data.role,
+          content: data.content,
+          route: data.route,
+          provider: data.provider,
+          createdAt: data.createdAt,
+        })
+        scrollLog()
+      } else if (data.type === 'status') {
+        applyStatus(data)
+      }
+    } catch {
+      /* ignore */
     }
-  } catch (error) {
-    console.error('Failed to load messages:', error)
+  }
+  ws.onclose = () => {
+    setTimeout(connectWs, 3000)
   }
 }
 
-// Save messages to localStorage
-function saveMessages(): void {
+async function switchMode(mode: string) {
+  if (mode === route.value) return
+  busy.value = true
+  msgError.value = false
   try {
-    localStorage.setItem(STORAGE_KEY_MESSAGES, JSON.stringify(messages.value))
-  } catch (error) {
-    console.error('Failed to save messages:', error)
-  }
-}
-
-// Load volume from localStorage
-function loadVolume(): void {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY_VOLUME)
-    if (saved) {
-      volume.value = parseInt(saved, 10)
-    }
-  } catch (error) {
-    console.error('Failed to load volume:', error)
-  }
-}
-
-// Save volume to localStorage
-function saveVolume(): void {
-  try {
-    localStorage.setItem(STORAGE_KEY_VOLUME, volume.value.toString())
-  } catch (error) {
-    console.error('Failed to save volume:', error)
-  }
-}
-
-async function checkStatus(): Promise<void> {
-  isRefreshing.value = true
-  errorMessage.value = ''
-  
-  try {
-    const res = await xiaomiApi.getStatus()
-    const status = res.data
-    deviceStatus.value = status.connected ? 'online' : 'offline'
-    deviceInfo.value = status.device || null
-    
-    if (status.device) {
-      volume.value = status.device.volume
-      saveVolume()
-    }
-  } catch (err: unknown) {
-    const e = err as { response?: { data?: { message?: string } } }
-    console.error('Failed to check status:', err)
-    deviceStatus.value = 'offline'
-    if (e.response?.data?.message) {
-      errorMessage.value = e.response.data.message
-    }
+    const res = await xiaomiApi.setMode(mode, false)
+    route.value = res.data.data?.route || mode
+    msg.value = res.data.data?.reply || `已切换到 ${mode}`
+  } catch (e) {
+    msgError.value = true
+    msg.value = errDetail(e)
   } finally {
-    isRefreshing.value = false
+    busy.value = false
   }
 }
 
-async function setVolume(): Promise<void> {
+async function refreshAll() {
+  try {
+    const [s, a, d, set, pk, v] = await Promise.all([
+      xiaomiApi.getStatus(),
+      xiaomiApi.getAccountStatus(),
+      xiaomiApi.getDialogueStatus(),
+      xiaomiApi.getDialogueSettings(),
+      auth.isAdmin ? xiaomiApi.listPanelKeywords() : Promise.resolve(null),
+      xiaomiApi.getVoiceStatus(),
+    ])
+    status.value = s.data.data
+    account.value = a.data.data
+    canControl.value = !!s.data.data?.configured
+    const st = d.data.data
+    applyStatus(st || {})
+    Object.assign(dlgSettings, set.data.data)
+    if (pk) panelKeywords.value = pk.data.data || []
+    const vs = v.data.data
+    voiceInfo.value = vs?.degraded
+      ? `语音降级: ${vs.error || '无麦'}`
+      : vs?.running
+        ? `语音: ${vs.engine}`
+        : '语音未运行'
+  } catch (e) {
+    msgError.value = true
+    msg.value = errDetail(e)
+  }
+}
+
+async function sendChat() {
+  const text = draft.value.trim()
+  if (!text) return
+  busy.value = true
+  msg.value = ''
+  msgError.value = false
+  draft.value = ''
+  try {
+    await xiaomiApi.utterance(text, 'web')
+  } catch (e) {
+    msgError.value = true
+    msg.value = errDetail(e)
+  } finally {
+    busy.value = false
+  }
+}
+
+async function saveSettings() {
+  if (!auth.isAdmin) return
+  try {
+    await xiaomiApi.updateDialogueSettings({
+      announceEnabled: dlgSettings.announceEnabled,
+      voiceInputEnabled: dlgSettings.voiceInputEnabled,
+      provider: dlgSettings.provider,
+    })
+    msg.value = '设置已保存'
+    msgError.value = false
+  } catch (e) {
+    msgError.value = true
+    msg.value = errDetail(e)
+  }
+}
+
+async function addKeyword() {
+  if (!newKw.value.trim()) return
+  try {
+    await xiaomiApi.createPanelKeyword({
+      keyword: newKw.value.trim(),
+      actionType: newAction.value,
+      payload: newAction.value === 'say' ? { text: newSay.value || '好的' } : {},
+      enabled: true,
+    })
+    newKw.value = ''
+    const pk = await xiaomiApi.listPanelKeywords()
+    panelKeywords.value = pk.data.data || []
+  } catch (e) {
+    msgError.value = true
+    msg.value = errDetail(e)
+  }
+}
+
+async function removeKeyword(id: number) {
+  await xiaomiApi.deletePanelKeyword(id)
+  panelKeywords.value = panelKeywords.value.filter((k) => k.id !== id)
+}
+
+async function doLogin() {
+  busy.value = true
+  try {
+    const res = await xiaomiApi.accountLogin(miUser.value.trim(), miPass.value)
+    const data = res.data.data
+    sessionId.value = data.sessionId
+    if (data.needSms) bindStep.value = 'sms'
+    else {
+      cloudDevices.value = data.devices || []
+      bindStep.value = 'pick'
+    }
+  } catch (e) {
+    msgError.value = true
+    msg.value = errDetail(e)
+  } finally {
+    busy.value = false
+  }
+}
+
+async function doVerify() {
+  busy.value = true
+  try {
+    const res = await xiaomiApi.accountVerify(sessionId.value, smsCode.value.trim())
+    cloudDevices.value = res.data.data.devices || []
+    bindStep.value = 'pick'
+  } catch (e) {
+    msgError.value = true
+    msg.value = errDetail(e)
+  } finally {
+    busy.value = false
+  }
+}
+
+async function doBind(did: string) {
+  busy.value = true
+  try {
+    await xiaomiApi.accountBind(sessionId.value, did)
+    await refreshAll()
+  } catch (e) {
+    msgError.value = true
+    msg.value = errDetail(e)
+  } finally {
+    busy.value = false
+  }
+}
+
+async function doUnbind() {
+  if (!confirm('确定解绑？')) return
+  await xiaomiApi.unbind()
+  await refreshAll()
+}
+
+async function doWake() {
+  busy.value = true
+  try {
+    await xiaomiApi.wake()
+  } catch (e) {
+    msgError.value = true
+    msg.value = errDetail(e)
+  } finally {
+    busy.value = false
+  }
+}
+
+async function doTts() {
+  busy.value = true
+  try {
+    await xiaomiApi.tts({ text: ttsText.value })
+  } catch (e) {
+    msgError.value = true
+    msg.value = errDetail(e)
+  } finally {
+    busy.value = false
+  }
+}
+
+async function run(action: 'play' | 'pause' | 'stop') {
+  busy.value = true
+  try {
+    await xiaomiApi[action]()
+  } catch (e) {
+    msgError.value = true
+    msg.value = errDetail(e)
+  } finally {
+    busy.value = false
+  }
+}
+
+async function setVol() {
+  if (!canControl.value) return
+  volBusy.value = true
+  volError.value = false
   try {
     await xiaomiApi.setVolume(volume.value)
-    saveVolume()
-  } catch (err: unknown) {
-    console.error('Failed to set volume:', err)
-    errorMessage.value = '设置音量失败'
-  }
-}
-
-function increaseVolume(): void {
-  if (volume.value < 100) {
-    volume.value = Math.min(100, volume.value + 10)
-    setVolume()
-  }
-}
-
-function decreaseVolume(): void {
-  if (volume.value > 0) {
-    volume.value = Math.max(0, volume.value - 10)
-    setVolume()
-  }
-}
-
-async function playAudio(): Promise<void> {
-  try {
-    await xiaomiApi.play()
-  } catch (err: unknown) {
-    console.error('Failed to play:', err)
-    errorMessage.value = '播放失败'
-  }
-}
-
-async function pauseAudio(): Promise<void> {
-  try {
-    await xiaomiApi.pause()
-  } catch (err: unknown) {
-    console.error('Failed to pause:', err)
-    errorMessage.value = '暂停失败'
-  }
-}
-
-async function stopAudio(): Promise<void> {
-  try {
-    await xiaomiApi.stop()
-  } catch (err: unknown) {
-    console.error('Failed to stop:', err)
-    errorMessage.value = '停止失败'
-  }
-}
-
-async function playTts(): Promise<void> {
-  const text = ttsText.value.trim()
-  if (!text) return
-
-  isTtsLoading.value = true
-  errorMessage.value = ''
-
-  try {
-    await xiaomiApi.tts({ text, volume: volume.value })
-    ttsText.value = ''
-  } catch (err: unknown) {
-    const e = err as { response?: { data?: { message?: string } } }
-    console.error('Failed to play TTS:', err)
-    errorMessage.value = e.response?.data?.message || 'TTS 播放失败'
+    volMsg.value = `音量已设为 ${volume.value}`
+  } catch (e) {
+    volError.value = true
+    volMsg.value = errDetail(e)
   } finally {
-    isTtsLoading.value = false
+    volBusy.value = false
   }
 }
 
-async function sendMessage(): Promise<void> {
-  const message = inputMessage.value.trim()
-  if (!message || isChatLoading.value) return
-
-  messages.value.push({
-    role: 'user',
-    content: message,
-    timestamp: Date.now()
-  })
-  inputMessage.value = ''
-  isChatLoading.value = true
-  errorMessage.value = ''
-  streamingContent.value = ''
-
-  scrollToBottom()
-  
-  await xiaomiApi.chatStream(
-    message,
-    (chunk) => {
-      streamingContent.value += chunk
-      scrollToBottom()
-    },
-    () => {
-      if (streamingContent.value) {
-        messages.value.push({
-          role: 'assistant',
-          content: streamingContent.value,
-          timestamp: Date.now()
-        })
-        
-        // 自动播放 AI 回答
-        if (autoPlayResponse.value && streamingContent.value) {
-          playTtsFromText(streamingContent.value)
-        }
-        
-        streamingContent.value = ''
-      }
-      isChatLoading.value = false
-      scrollToBottom()
-    },
-    (error) => {
-      console.error('Chat error:', error)
-      errorMessage.value = '发送消息失败: ' + error.message
-      isChatLoading.value = false
-      streamingContent.value = ''
-    }
-  )
+function onVolumeInput() {
+  if (volTimer) clearTimeout(volTimer)
+  volTimer = setTimeout(() => {
+    void setVol()
+  }, 350)
 }
 
-async function playTtsFromText(text: string): Promise<void> {
-  try {
-    await xiaomiApi.tts({ text, volume: volume.value })
-  } catch (err) {
-    console.error('Failed to auto-play TTS:', err)
-  }
-}
+onMounted(async () => {
+  await refreshAll()
+  const hist = await xiaomiApi.getMessages(50)
+  messages.value = hist.data.data || []
+  connectWs()
+  scrollLog()
+})
 
-function clearChat(): void {
-  if (confirm('确定要清空所有对话记录吗？')) {
-    messages.value = []
-    streamingContent.value = ''
-    errorMessage.value = ''
-  }
-}
-
-function scrollToBottom(): void {
-  nextTick(() => {
-    if (messagesContainer.value) {
-      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
-    }
-  })
-}
-
-onMounted(() => {
-  loadMessages()
-  loadVolume()
-  checkStatus()
+onUnmounted(() => {
+  if (volTimer) clearTimeout(volTimer)
+  ws?.close()
+  ws = null
 })
 </script>
+
+<style scoped>
+.xiaomi-page {
+  position: relative;
+  min-height: 100vh;
+}
+.wave-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+  overflow: hidden;
+}
+.xiaomi-page--tts .wave-overlay,
+.xiaomi-page--user .wave-overlay {
+  opacity: 1;
+}
+.wave-layer {
+  position: absolute;
+  left: -40%;
+  width: 180%;
+  height: 38vh;
+  background-repeat: repeat-x;
+  background-size: 50% 100%;
+  opacity: 0.35;
+}
+.wave-layer--back {
+  bottom: 8vh;
+  animation: wave-drift 14s linear infinite;
+}
+.wave-layer--front {
+  bottom: 0;
+  height: 28vh;
+  opacity: 0.5;
+  animation: wave-drift 9s linear infinite reverse;
+}
+.xiaomi-page--tts .wave-layer--back {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath fill='%23c4873a' fill-opacity='0.55' d='M0,64 C200,96 400,32 600,64 C800,96 1000,32 1200,64 L1200,120 L0,120 Z'/%3E%3C/svg%3E");
+}
+.xiaomi-page--tts .wave-layer--front {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath fill='%23e8b56a' fill-opacity='0.45' d='M0,72 C180,40 360,88 540,56 C720,24 900,80 1200,48 L1200,120 L0,120 Z'/%3E%3C/svg%3E");
+}
+.xiaomi-page--user .wave-layer--back {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath fill='%233d8b72' fill-opacity='0.5' d='M0,48 C220,80 440,24 660,56 C880,88 1100,32 1200,64 L1200,120 L0,120 Z'/%3E%3C/svg%3E");
+  animation-direction: reverse;
+}
+.xiaomi-page--user .wave-layer--front {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath fill='%235fbfb0' fill-opacity='0.35' d='M0,80 C200,48 400,96 600,64 C800,32 1000,72 1200,40 L1200,120 L0,120 Z'/%3E%3C/svg%3E");
+  animation-direction: normal;
+}
+@keyframes wave-drift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-25%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wave-layer {
+    animation: none;
+  }
+  .xiaomi-page--tts .wave-overlay,
+  .xiaomi-page--user .wave-overlay {
+    opacity: 0.25;
+  }
+}
+.settings-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgb(20 14 10 / 0.45);
+  display: flex;
+  justify-content: flex-end;
+}
+.settings-panel {
+  width: min(100%, 26rem);
+  height: 100%;
+  background: #fffaf3;
+  border-left: 1px solid rgb(42 28 18 / 0.08);
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 32px rgb(42 28 18 / 0.12);
+  animation: settings-slide 0.22s ease-out;
+}
+:global(.dark) .settings-panel {
+  background: #1c1917;
+  border-color: rgb(255 255 255 / 0.06);
+}
+.settings-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgb(42 28 18 / 0.08);
+}
+:global(.dark) .settings-panel__head {
+  border-color: rgb(255 255 255 / 0.06);
+}
+.settings-panel__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.25rem 1.5rem;
+}
+.settings-block + .settings-block {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgb(42 28 18 / 0.06);
+}
+:global(.dark) .settings-block + .settings-block {
+  border-color: rgb(255 255 255 / 0.06);
+}
+.settings-block__title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8a7f72;
+  margin-bottom: 0.75rem;
+}
+@keyframes settings-slide {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .settings-panel {
+    animation: none;
+  }
+}
+.xiaomi-hero {
+  background:
+    radial-gradient(120% 80% at 10% 0%, rgb(196 135 58 / 0.45), transparent 55%),
+    linear-gradient(165deg, #2a1c12 0%, #4a2f1a 42%, #1a120c 100%);
+  position: relative;
+  overflow: hidden;
+}
+.xiaomi-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+.xiaomi-hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 2.75rem 1.25rem 3.5rem;
+}
+.xiaomi-kicker {
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(245 230 211 / 0.65);
+  margin-bottom: 0.5rem;
+}
+.mode-seg {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.35rem;
+  padding: 0.35rem;
+  border-radius: 0.75rem;
+  background: rgb(244 236 224 / 0.85);
+}
+:global(.dark) .mode-seg {
+  background: rgb(30 27 24 / 0.9);
+}
+.mode-seg__btn {
+  border: 0;
+  border-radius: 0.55rem;
+  padding: 0.55rem 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #5c534a;
+  background: transparent;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.mode-seg__btn:hover:not(:disabled) {
+  background: rgb(255 255 255 / 0.65);
+}
+.mode-seg__btn--on {
+  background: #c4873a;
+  color: #fffaf3;
+  box-shadow: 0 1px 2px rgb(42 28 18 / 0.2);
+}
+.mode-seg__btn:disabled {
+  opacity: 0.45;
+}
+.chat-log {
+  min-height: 280px;
+  max-height: 420px;
+  overflow-y: auto;
+  background:
+    linear-gradient(180deg, rgb(250 246 240 / 0.9), rgb(255 255 255 / 0.4));
+}
+:global(.dark) .chat-log {
+  background: linear-gradient(180deg, rgb(28 25 23 / 0.9), transparent);
+}
+.chat-bubble {
+  max-width: 85%;
+  border-radius: 1.1rem;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.925rem;
+  line-height: 1.45;
+}
+.chat-bubble--user {
+  background: #c4873a;
+  color: #fffaf3;
+  border-bottom-right-radius: 0.35rem;
+}
+.chat-bubble--bot {
+  background: #fff;
+  color: #2a241c;
+  border: 1px solid rgb(42 28 18 / 0.06);
+  border-bottom-left-radius: 0.35rem;
+}
+:global(.dark) .chat-bubble--bot {
+  background: #1c1917;
+  color: #e7e5e4;
+  border-color: rgb(255 255 255 / 0.06);
+}
+.chat-meta {
+  margin-top: 0.35rem;
+  font-size: 0.65rem;
+  opacity: 0.65;
+}
+.chat-composer {
+  display: flex;
+  border-top: 1px solid rgb(42 28 18 / 0.08);
+  background: #fff;
+}
+:global(.dark) .chat-composer {
+  border-color: rgb(255 255 255 / 0.06);
+  background: #0c0a09;
+}
+@media (max-width: 640px) {
+  .mode-seg {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .mode-seg__btn:nth-child(4),
+  .mode-seg__btn:nth-child(5) {
+    grid-column: span 1;
+  }
+}
+</style>

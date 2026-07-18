@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
+
 from app.schemas.ai import AIChatRequest, AIModelsResponse, AIStatusResponse
 from app.schemas.common import Result
 from app.services import ai as ai_service
@@ -21,16 +22,27 @@ def get_status() -> Result[AIStatusResponse]:
     return Result.success(status)
 
 
+async def _announce_ai_done() -> None:
+    try:
+        from app.plugins.xiaomi.dialogue.orchestrator import announce
+
+        await announce("本站 AI 对话完成", kind="ollama")
+    except Exception:
+        pass
+
+
 @router.post("/chat")
 async def chat(request: AIChatRequest):
     """与 AI 对话（支持流式和非流式）"""
     if request.stream:
-        # 流式响应
+
         async def generate():
+            done = False
             try:
                 import httpx
+
                 url = ai_service._get_effective_ollama_url()
-                
+
                 async with httpx.AsyncClient(timeout=300.0) as client:
                     async with client.stream(
                         "POST",
@@ -45,9 +57,13 @@ async def chat(request: AIChatRequest):
                         async for line in response.aiter_lines():
                             if line:
                                 yield line + "\n"
+                                if '"done":true' in line.replace(" ", "") or '"done": true' in line:
+                                    done = True
             except Exception as e:
                 yield f'{{"error": "{str(e)}"}}\n'
-        
+            if done:
+                await _announce_ai_done()
+
         return StreamingResponse(
             generate(),
             media_type="text/plain",
@@ -58,11 +74,11 @@ async def chat(request: AIChatRequest):
             },
         )
     else:
-        # 非流式响应
         try:
             import httpx
+
             url = ai_service._get_effective_ollama_url()
-            
+
             response = httpx.post(
                 f"{url}/api/generate",
                 json={
@@ -74,7 +90,7 @@ async def chat(request: AIChatRequest):
                 timeout=300.0,
             )
             response.raise_for_status()
-            
+            await _announce_ai_done()
             return Result.success(response.json())
         except Exception as e:
             return Result.error(f"Failed to communicate with Ollama service: {str(e)}")

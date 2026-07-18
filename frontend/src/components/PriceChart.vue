@@ -1,15 +1,13 @@
 <template>
-  <div class="chart-container">
-    <Line 
-      v-if="chartData.labels.length > 0"
-      :data="chartData"
-      :options="chartOptions"
-    />
+  <div class="w-full" :style="{ height: `${height}px` }">
+    <Line v-if="chartData" :data="chartData" :options="options" />
+    <p v-else class="text-sm text-ink-400 py-12 text-center">暂无走势数据</p>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { Line } from 'vue-chartjs'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -18,111 +16,48 @@ import {
   LineElement,
   Title,
   Tooltip,
+  Filler,
   Legend,
-  Filler
 } from 'chart.js'
-import { Line } from 'vue-chartjs'
 import type { PricePoint } from '@/api/goldPrice'
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler, Legend)
+
+const props = withDefaults(
+  defineProps<{
+    data: PricePoint[]
+    currency?: string
+    height?: number
+  }>(),
+  { currency: 'CNY', height: 320 },
 )
 
-const props = defineProps<{
-  data: PricePoint[]
-  currency: string
-  symbol: string
-}>()
-
 const chartData = computed(() => {
+  if (!props.data?.length) return null
   return {
-    labels: props.data.map(p => {
-      const date = new Date(p.date)
-      return `${date.getMonth() + 1}/${date.getDate()}`
-    }),
+    labels: props.data.map((p) => p.date),
     datasets: [
       {
         label: `金价 (${props.currency})`,
-        data: props.data.map(p => p.price),
-        borderColor: '#f59e0b',
-        backgroundColor: (context: any) => {
-          const ctx = context.chart.ctx
-          const gradient = ctx.createLinearGradient(0, 0, 0, 300)
-          gradient.addColorStop(0, 'rgba(245, 158, 11, 0.3)')
-          gradient.addColorStop(1, 'rgba(245, 158, 11, 0.05)')
-          return gradient
-        },
-        borderWidth: 3,
-        pointRadius: 0,
-        pointHoverRadius: 6,
-        pointHoverBackgroundColor: '#f59e0b',
-        pointHoverBorderColor: '#fff',
-        pointHoverBorderWidth: 2,
+        data: props.data.map((p) => p.price),
+        borderColor: '#f5971f',
+        backgroundColor: 'rgb(245 151 31 / 0.12)',
         fill: true,
-        tension: 0.4
-      }
-    ]
+        tension: 0.3,
+        pointRadius: 0,
+        borderWidth: 2,
+      },
+    ],
   }
 })
 
-const chartOptions = computed(() => ({
+const options = {
   responsive: true,
   maintainAspectRatio: false,
-  interaction: {
-    intersect: false,
-    mode: 'index'
-  },
-  plugins: {
-    legend: {
-      display: false
-    },
-    tooltip: {
-      backgroundColor: 'rgba(30, 41, 59, 0.95)',
-      titleColor: '#94a3b8',
-      bodyColor: '#f8fafc',
-      borderColor: 'rgba(245, 158, 11, 0.3)',
-      borderWidth: 1,
-      padding: 12,
-      displayColors: false,
-      callbacks: {
-        label: (context: any) => {
-          return props.symbol + context.parsed.y.toLocaleString()
-        }
-      }
-    }
-  },
+  plugins: { legend: { display: false } },
   scales: {
-    x: {
-      grid: {
-        color: 'rgba(148, 163, 184, 0.1)',
-        drawBorder: false
-      },
-      ticks: {
-        color: '#94a3b8',
-        maxTicksLimit: 8,
-        maxRotation: 0
-      }
-    },
-    y: {
-      grid: {
-        color: 'rgba(148, 163, 184, 0.1)',
-        drawBorder: false
-      },
-      ticks: {
-        color: '#94a3b8',
-        callback: (value: any) => {
-          const num = Number(value)
-          return props.symbol + (num >= 1000 ? (num / 1000).toFixed(1) + 'k' : num)
-        }
-      }
-    }
-  }
-}))
+    x: { grid: { display: false }, ticks: { maxTicksLimit: 8, color: '#9da1ab' } },
+    y: { grid: { color: 'rgb(0 0 0 / 0.04)' }, ticks: { color: '#9da1ab' } },
+  },
+}
 </script>

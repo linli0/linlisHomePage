@@ -1,102 +1,44 @@
 """Tests for xiaomi speaker plugin (P3)."""
-import os
-import sys
-import pytest
-from fastapi.testclient import TestClient
 
 
-def test_xiaomi_plugin_disabled_by_default(client):
-    """Xiaomi plugin should be disabled by default."""
-    response = client.get("/api/xiaomi/status")
-    assert response.status_code == 404
+def test_xiaomi_plugin_requires_auth(client):
+    """Xiaomi routes are mounted by default and require login."""
+    assert client.get("/api/xiaomi/status").status_code == 401
+    assert client.get("/api/xiaomi/devices").status_code == 401
+    assert client.get("/api/xiaomi/config").status_code == 401
 
 
-def test_xiaomi_plugin_enabled_returns_status():
-    """When ENABLE_XIAOMI=true, /api/xiaomi/status should return status."""
-    os.environ["ENABLE_XIAOMI"] = "true"
-    
-    # Remove cached modules to force re-import
-    modules_to_remove = [k for k in sys.modules.keys() if k.startswith('app.main')]
-    for mod in modules_to_remove:
-        del sys.modules[mod]
-    
-    # Re-import to trigger plugin registration
-    from app.main import app
-    from app.core.database import get_db
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import sessionmaker
-    from sqlalchemy.pool import StaticPool
-    from app.core.database import Base
-    
-    engine = create_engine(
-        "sqlite://",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    Base.metadata.create_all(bind=engine)
-    
-    def override_get_db():
-        db = TestingSessionLocal()
-        try:
-            yield db
-        finally:
-            db.close()
-    
-    app.dependency_overrides[get_db] = override_get_db
-    
-    with TestClient(app) as test_client:
-        response = test_client.get("/api/xiaomi/status")
-        assert response.status_code == 200
-        body = response.json()
-        assert body["code"] == 200
-        assert "enabled" in body["data"]
-        assert body["data"]["enabled"] is True
-    
-    # Cleanup
-    del os.environ["ENABLE_XIAOMI"]
-    app.dependency_overrides.clear()
+def test_xiaomi_plugin_config_with_auth(client, auth_headers):
+    """Authenticated /api/xiaomi/config returns binding shape."""
+    response = client.get("/api/xiaomi/config", headers=auth_headers)
+    assert response.status_code == 200
+    body = response.json()
+    assert body["code"] == 200
+    assert "enabled" in body["data"]
+    assert "configured" in body["data"]
 
 
-def test_xiaomi_plugin_returns_devices():
-    """Xiaomi plugin should return mock device list."""
-    os.environ["ENABLE_XIAOMI"] = "true"
-    
-    # Remove cached modules to force re-import
-    modules_to_remove = [k for k in sys.modules.keys() if k.startswith('app.main')]
-    for mod in modules_to_remove:
-        del sys.modules[mod]
-    
-    from app.main import app
-    from app.core.database import get_db
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import sessionmaker
-    from sqlalchemy.pool import StaticPool
-    from app.core.database import Base
-    
-    engine = create_engine(
-        "sqlite://",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    Base.metadata.create_all(bind=engine)
-    
-    def override_get_db():
-        db = TestingSessionLocal()
-        try:
-            yield db
-        finally:
-            db.close()
-    
-    app.dependency_overrides[get_db] = override_get_db
-    
-    with TestClient(app) as test_client:
-        response = test_client.get("/api/xiaomi/devices")
-        assert response.status_code == 200
-        body = response.json()
-        assert body["code"] == 200
-        assert isinstance(body["data"], list)
-    
-    del os.environ["ENABLE_XIAOMI"]
-    app.dependency_overrides.clear()
+def test_xiaomi_plugin_status_and_devices(client, auth_headers, monkeypatch):
+    """Status/devices succeed when probe is available (mocked; no real speaker)."""
+
+    async def fake_probe():
+        return {
+            "connected": False,
+            "configured": False,
+            "error": "未绑定设备",
+            "device": None,
+            "source": None,
+            "enabled": True,
+        }
+
+    monkeypatch.setattr("app.plugins.xiaomi.miot.probe", fake_probe)
+
+    status = client.get("/api/xiaomi/status", headers=auth_headers)
+    assert status.status_code == 200
+    assert status.json()["code"] == 200
+
+    devices = client.get("/api/xiaomi/devices", headers=auth_headers)
+    assert devices.status_code == 200
+    body = devices.json()
+    assert body["code"] == 200
+    assert isinstance(body["data"], list)

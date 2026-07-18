@@ -1,67 +1,50 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
-import type { SettingsConfig } from '@/types/settings'
-import { DEFAULT_SETTINGS } from '@/types/settings'
+import { DEFAULT_SETTINGS, type SettingsConfig, type XiaomiConfig, type TwitterConfig, type AIConfig } from '@/types/settings'
 
 const STORAGE_KEY = 'settings-config'
 
-function loadFromStorage(): SettingsConfig {
+function loadSettings(): SettingsConfig {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) }
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return { ...DEFAULT_SETTINGS, xiaomi: { ...DEFAULT_SETTINGS.xiaomi }, twitter: { ...DEFAULT_SETTINGS.twitter }, ai: { ...DEFAULT_SETTINGS.ai } }
+    const parsed = JSON.parse(raw) as Partial<SettingsConfig>
+    return {
+      xiaomi: { ...DEFAULT_SETTINGS.xiaomi, ...parsed.xiaomi },
+      twitter: { ...DEFAULT_SETTINGS.twitter, ...parsed.twitter },
+      ai: { ...DEFAULT_SETTINGS.ai, ...parsed.ai },
     }
-  } catch (e) {
-    console.error('Failed to load settings from storage:', e)
-  }
-  return { ...DEFAULT_SETTINGS }
-}
-
-function saveToStorage(settings: SettingsConfig) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
-  } catch (e) {
-    console.error('Failed to save settings to storage:', e)
+  } catch {
+    return { ...DEFAULT_SETTINGS, xiaomi: { ...DEFAULT_SETTINGS.xiaomi }, twitter: { ...DEFAULT_SETTINGS.twitter }, ai: { ...DEFAULT_SETTINGS.ai } }
   }
 }
 
 export const useSettingsStore = defineStore('settings', () => {
-  const settings = ref<SettingsConfig>(loadFromStorage())
-  const loading = ref(false)
-  const error = ref<string | null>(null)
+  const settings = ref<SettingsConfig>(loadSettings())
 
-  // Persist to localStorage on change
-  watch(
-    settings,
-    (newSettings) => {
-      saveToStorage(newSettings)
-    },
-    { deep: true }
-  )
+  watch(settings, (v) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(v))
+  }, { deep: true })
 
-  function updateXiaomiConfig(config: Partial<SettingsConfig['xiaomi']>) {
-    settings.value.xiaomi = { ...settings.value.xiaomi, ...config }
+  function updateXiaomiConfig(partial: Partial<XiaomiConfig>) {
+    settings.value.xiaomi = { ...settings.value.xiaomi, ...partial }
   }
 
-  function updateTwitterConfig(config: Partial<SettingsConfig['twitter']>) {
-    settings.value.twitter = { ...settings.value.twitter, ...config }
+  function updateTwitterConfig(partial: Partial<TwitterConfig>) {
+    settings.value.twitter = { ...settings.value.twitter, ...partial }
   }
 
-  function updateAIConfig(config: Partial<SettingsConfig['ai']>) {
-    settings.value.ai = { ...settings.value.ai, ...config }
+  function updateAIConfig(partial: Partial<AIConfig>) {
+    settings.value.ai = { ...settings.value.ai, ...partial }
   }
 
   function resetToDefaults() {
-    settings.value = { ...DEFAULT_SETTINGS }
+    settings.value = {
+      xiaomi: { ...DEFAULT_SETTINGS.xiaomi },
+      twitter: { ...DEFAULT_SETTINGS.twitter },
+      ai: { ...DEFAULT_SETTINGS.ai },
+    }
   }
 
-  return {
-    settings,
-    loading,
-    error,
-    updateXiaomiConfig,
-    updateTwitterConfig,
-    updateAIConfig,
-    resetToDefaults
-  }
+  return { settings, updateXiaomiConfig, updateTwitterConfig, updateAIConfig, resetToDefaults }
 })

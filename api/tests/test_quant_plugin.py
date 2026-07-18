@@ -6,10 +6,13 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-def test_quant_plugin_disabled_by_default(client):
-    """Quant plugin should be disabled by default."""
+def test_quant_plugin_enabled_by_default(client):
+    """Quant plugin is enabled by default (set ENABLE_QUANT=false to disable)."""
     response = client.get("/api/quant/status")
-    assert response.status_code == 404
+    assert response.status_code == 200
+    body = response.json()
+    assert body["code"] == 200
+    assert body["data"]["enabled"] is True
 
 
 def test_quant_plugin_enabled_returns_status():

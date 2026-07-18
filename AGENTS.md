@@ -10,6 +10,14 @@
 
 ---
 
+## SESSION HANDOFF (epitaph / 墓志铭)
+
+**开场必做：** 新开对话接手本仓库时，主动检查并阅读 `docs/epitaph/`（见 `docs/epitaph/README.md`），优先最新日期、未归档条目。不必等用户说「墓志铭」。读完后按全局 `epitaph` skill 自行判断删除或移入 `docs/epitaph/archive/`。
+
+活跃后端多为 FastAPI `api/`（端口 8000）；Spring Boot 在 `legacy/spring-boot/`。小米/对话见 `.cursor/skills/xiaomi-cli/` 与 `docs/superpowers/specs/2026-07-19-miai-dialogue-design.md`。
+
+---
+
 ## OVERVIEW
 
 全栈个人主页应用。**Spring Boot 后端** + Vue 3 前端架构。

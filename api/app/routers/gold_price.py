@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/gold-price", tags=["gold-price"])
 @router.get("/current")
 def current(
     db: Annotated[Session, Depends(get_db)],
-    currency: str = Query("USD"),
+    currency: str = Query("CNY"),
 ) -> Result:
     return Result.success(gold_service.get_current_price(db, currency))
 
@@ -21,7 +21,7 @@ def current(
 @router.get("/history")
 def history(
     db: Annotated[Session, Depends(get_db)],
-    currency: str = Query("USD"),
+    currency: str = Query("CNY"),
     days: int = Query(30, ge=1, le=365),
 ) -> Result:
     return Result.success(gold_service.get_price_history(db, currency, days))
@@ -30,3 +30,12 @@ def history(
 @router.get("/currencies")
 def currencies(db: Annotated[Session, Depends(get_db)]) -> Result:
     return Result.success(gold_service.list_currencies(db))
+
+
+@router.post("/refresh")
+def refresh(db: Annotated[Session, Depends(get_db)]) -> Result:
+    try:
+        gold_service.refresh_from_sina(db, force=True)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"金价刷新失败: {exc}") from exc
+    return Result.success(gold_service.get_current_price(db, "CNY"))
