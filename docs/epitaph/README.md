@@ -4,7 +4,9 @@
 
 ## Active
 
-???? active ????
+| ?? | ?? | ?? |
+|------|------|------|
+| 2026-07-19 | [2026-07-19-non-miai-usability.md](./2026-07-19-non-miai-usability.md) | ?????? + FastAPI ??/load-service?PR #7 |
 
 ## ??
 
@@ -25,5 +27,5 @@
 
 | ?? | ?? | ?? |
 |------|------|------|
-| 2026-07-19 | [archive/2026-07-19-miai-ops-handoff.md](./archive/2026-07-19-miai-ops-handoff.md) | Ollama ???announce ???tunnel?PR #5/#6???/load-service ????? |
-| 2026-07-19 | [archive/2026-07-19-miai-dialogue.md](./archive/2026-07-19-miai-dialogue.md) | ????????? DeepSeek primary???? ops handoff / Ollama ??? |
+| 2026-07-19 | [archive/2026-07-19-miai-ops-handoff.md](./archive/2026-07-19-miai-ops-handoff.md) | Ollama/announce/tunnel???????? |
+| 2026-07-19 | [archive/2026-07-19-miai-dialogue.md](./archive/2026-07-19-miai-dialogue.md) | ?????? |
