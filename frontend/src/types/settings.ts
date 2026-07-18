@@ -19,15 +19,7 @@ export interface SettingsConfig {
 }
 
 export const DEFAULT_SETTINGS: SettingsConfig = {
-  xiaomi: {
-    deviceId: '',
-    apiUrl: 'http://localhost:8080/api/xiaomi'
-  },
-  twitter: {
-    keywords: [],
-    usernames: []
-  },
-  ai: {
-    defaultModel: 'llama3'
-  }
+  xiaomi: { deviceId: '', apiUrl: 'http://localhost:8000/api/xiaomi' },
+  twitter: { keywords: [], usernames: [] },
+  ai: { defaultModel: '' },
 }

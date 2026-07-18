@@ -28,9 +28,13 @@ def test_ai_status_fields(client):
 
 def test_ai_models_when_ollama_offline(client):
     """GET /api/ai/models should return 503 when Ollama is unreachable."""
-    response = client.get("/api/ai/models")
-    # In test environment, Ollama is not running, so expect 503
-    assert response.status_code == 503
+    with patch("app.services.ai.httpx.get") as mock_get:
+        mock_get.side_effect = httpx.ConnectError("unreachable")
+        from app.services.ai import reset_ollama_url
+
+        reset_ollama_url()
+        response = client.get("/api/ai/models")
+        assert response.status_code == 503
 
 
 def test_ai_models_when_ollama_online(client):

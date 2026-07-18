@@ -1,0 +1,8 @@
+---
+description: On new chats, check docs/epitaph/ for session handoffs (墓志铭)
+alwaysApply: true
+---
+
+# Session handoff
+
+开场检查 `docs/epitaph/`（先读 `README.md`，再读最新未归档条目）。详见全局 skill `epitaph` 与 `AGENTS.md` 的 SESSION HANDOFF 节。读完后可自行删除或归档。

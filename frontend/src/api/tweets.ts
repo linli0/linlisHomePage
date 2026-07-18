@@ -1,24 +1,10 @@
 import request from '@/utils/request'
-import type { TweetDTO, TweetSearchRequest, TweetStatsDTO } from '@/types/tweet'
+import type { TweetSearchRequest } from '@/types/tweet'
 
 export const tweetsApi = {
-  getLatest(params?: {
-    limit?: number
-    platform?: string
-    username?: string
-  }) {
-    return request.get<TweetDTO[]>('/tweets/latest', { params })
-  },
-
-  search(request: TweetSearchRequest) {
-    return request.post<TweetDTO[]>('/tweets/search', request)
-  },
-
-  getStats() {
-    return request.get<TweetStatsDTO>('/tweets/stats')
-  },
-
-  getById(id: number) {
-    return request.get<TweetDTO>(`/tweets/${id}`)
-  }
+  getLatest: (params?: { limit?: number; platform?: string; username?: string }) =>
+    request.get('/tweets/latest', { params }),
+  search: (req: TweetSearchRequest) => request.post('/tweets/search', req),
+  getStats: () => request.get('/tweets/stats'),
+  getById: (id: number | string) => request.get(`/tweets/${id}`),
 }

@@ -2,39 +2,33 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi } from '@/api/auth'
 
-export interface User {
+export interface AuthUser {
   id: number
   username: string
-  email: string
-  displayName: string
-  avatar: string
+  email?: string
+  displayName?: string
+  avatar?: string
   role: string
   createdAt?: string
 }
 
 export const useAuthStore = defineStore('auth', () => {
-  // State
   const token = ref<string | null>(localStorage.getItem('token'))
-  const user = ref<User | null>(null)
+  const user = ref<AuthUser | null>(null)
   const loading = ref(false)
-  const error = ref<string | null>(null)
+  const error = ref('')
 
-  // Getters
   const isAuthenticated = computed(() => !!token.value)
   const isAdmin = computed(() => user.value?.role === 'ADMIN')
 
-  // Actions
-  async function login(password: string) {
+  async function login(password: string): Promise<boolean> {
     loading.value = true
-    error.value = null
-
+    error.value = ''
     try {
       const response = await authApi.login({ password })
-      const data = response.data  // ✅ 修复：响应拦截器已经解包了
-
+      const data = response.data.data
       token.value = data.token
       localStorage.setItem('token', data.token)
-
       user.value = {
         id: data.id,
         username: data.username,
@@ -42,12 +36,10 @@ export const useAuthStore = defineStore('auth', () => {
         displayName: data.displayName,
         avatar: data.avatar,
         role: data.role,
-        createdAt: data.createdAt
       }
-
       return true
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Login failed'
+    } catch (e: unknown) {
+      error.value = e instanceof Error ? e.message : '登录失败'
       return false
     } finally {
       loading.value = false
@@ -56,11 +48,10 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function fetchUser() {
     if (!token.value) return
-
     try {
       const response = await authApi.getCurrentUser()
-      user.value = response.data  // ✅ 修复：响应拦截器已经解包了
-    } catch (err) {
+      user.value = response.data.data
+    } catch {
       logout()
     }
   }
@@ -71,15 +62,5 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('token')
   }
 
-  return {
-    token,
-    user,
-    loading,
-    error,
-    isAuthenticated,
-    isAdmin,
-    login,
-    fetchUser,
-    logout
-  }
+  return { token, user, loading, error, isAuthenticated, isAdmin, login, fetchUser, logout }
 })

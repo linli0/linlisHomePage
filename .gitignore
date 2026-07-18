@@ -29,6 +29,11 @@ yarn-error.log*
 .env
 .env.local
 .env.*.local
+api/.env
+api/.xiaomi_*
+api/data/mi.token
+api/scripts/xiaomi_2fa_*.py
+api/scripts/xiaomi_login_2fa.py
 
 # Database
 backend/data/
@@ -53,6 +58,10 @@ frontend-dist/
 # Cloudflared binary
 cloudflared
 cloudflared.exe
+
+# One-click launcher build
+CoffeeHomepage.exe
+build/launcher/
 
 # Trae
 .trae/

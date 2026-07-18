@@ -4,7 +4,7 @@ export interface TweetDTO {
   content: string
   platform: 'twitter' | 'truth-social'
   username: string
-  displayName: string
+  displayName?: string
   createdAt: string
   likesCount: number
   retweetsCount: number
@@ -23,6 +23,14 @@ export interface TweetSearchRequest {
   limit?: number
 }
 
+export interface AccountStats {
+  username: string
+  displayName?: string
+  platform: string
+  tweetCount: number
+  averageLikes: number
+}
+
 export interface TweetStatsDTO {
   totalTweets: number
   twitterTweets: number
@@ -31,12 +39,4 @@ export interface TweetStatsDTO {
   tweetsThisWeek: number
   topAccounts: AccountStats[]
   averageEngagement: number
-}
-
-export interface AccountStats {
-  username: string
-  displayName: string
-  platform: string
-  tweetCount: number
-  averageLikes: number
 }

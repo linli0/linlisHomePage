@@ -3,132 +3,120 @@ import request from '@/utils/request'
 export interface XiaomiDevice {
   deviceId: string
   name: string
-  model: string
+  model?: string
   online: boolean
-  volume: number
+  volume?: number | null
+  ip?: string
   lastSeen?: string
+  did?: string
 }
 
 export interface XiaomiStatus {
   connected: boolean
+  configured?: boolean
   device?: XiaomiDevice
   error?: string
+  source?: string
 }
 
-export interface TTSRequest {
-  text: string
-  volume?: number
+export interface CloudDevice {
+  did: string
+  name: string
+  model: string
+  ip: string
+  isOnline: boolean
+  hasToken: boolean
+  isSpeaker: boolean
 }
 
-export interface ChatRequest {
-  message: string
-  stream?: boolean
+export interface AccountStatus {
+  bound: boolean
+  miUsername?: string | null
+  miUserId?: string | null
+  hasPassToken?: boolean
+  device?: {
+    did: string
+    name: string
+    model: string
+    ip: string
+    hasToken: boolean
+  } | null
+  updatedAt?: string | null
 }
 
-export interface ChatResponse {
-  response: string
-  done: boolean
+export interface ChatMessage {
+  id?: number
+  role: string
+  content: string
+  route?: string | null
+  provider?: string | null
+  createdAt?: string | null
+}
+
+export interface DialogueSettings {
+  announceEnabled: boolean
+  voiceInputEnabled: boolean
+  provider: string
+  idleSec?: number
+  ttsCooldownMs?: number
+}
+
+export interface PanelKeyword {
+  id: number
+  keyword: string
+  actionType: string
+  payload: Record<string, unknown>
+  enabled: boolean
+  sortOrder: number
 }
 
 export const xiaomiApi = {
-  // 获取设备状态
   getStatus: () => request.get('/xiaomi/status'),
-
-  // 文本转语音
-  tts: (data: TTSRequest) => request.post('/xiaomi/tts', data),
-
-  // 流式对话
-  chatStream: async (
-    message: string,
-    onMessage: (chunk: string) => void,
-    onDone?: () => void,
-    onError?: (error: Error) => void
-  ) => {
-    const baseURL = import.meta.env.VITE_API_BASE_URL || ''
-    const token = localStorage.getItem('token')
-
-    try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      }
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`
-      }
-
-      const response = await fetch(`${baseURL}/xiaomi/chat`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          message,
-          stream: true
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const reader = response.body?.getReader()
-      const decoder = new TextDecoder()
-      let buffer = ''
-      let doneCalled = false
-
-      if (!reader) {
-        throw new Error('No response body')
-      }
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split('\n')
-        buffer = lines.pop() || ''
-
-        for (const line of lines) {
-          if (!line.trim()) continue
-          try {
-            const parsed = JSON.parse(line)
-            if (parsed.response) {
-              onMessage(parsed.response)
-            }
-            if (parsed.done && !doneCalled) {
-              doneCalled = true
-              onDone?.()
-            }
-          } catch {
-            // skip incomplete JSON
-          }
-        }
-      }
-
-      if (buffer.trim()) {
-        try {
-          const parsed = JSON.parse(buffer)
-          if (parsed.response) onMessage(parsed.response)
-          if (parsed.done && !doneCalled) {
-            doneCalled = true
-            onDone?.()
-          }
-        } catch {
-          // skip
-        }
-      }
-
-      if (!doneCalled) onDone?.()
-    } catch (error) {
-      onError?.(error as Error)
-    }
-  },
-
-  // 设置音量
+  getConfig: () => request.get('/xiaomi/config'),
+  getAccountStatus: () => request.get('/xiaomi/account/status'),
+  accountLogin: (username: string, password: string) =>
+    request.post('/xiaomi/account/login', { username, password }),
+  accountVerify: (sessionId: string, code: string) =>
+    request.post('/xiaomi/account/verify', { sessionId, code }),
+  accountBind: (sessionId: string, did: string) =>
+    request.post('/xiaomi/account/bind', { sessionId, did }),
+  refreshDevices: () => request.post('/xiaomi/account/refresh-devices'),
+  rebindDevice: (did: string) => request.post('/xiaomi/account/rebind-device', { did }),
+  unbind: () => request.delete('/xiaomi/account'),
+  tts: (data: { text: string; volume?: number }) => request.post('/xiaomi/tts', data),
   setVolume: (volume: number) => request.post('/xiaomi/volume', { volume }),
-
-  // 播放/暂停
   play: () => request.post('/xiaomi/play'),
-
   pause: () => request.post('/xiaomi/pause'),
+  stop: () => request.post('/xiaomi/stop'),
+  wake: () => request.post('/xiaomi/wake'),
 
-  // 停止播放
-  stop: () => request.post('/xiaomi/stop')
+  getDialogueStatus: () => request.get('/xiaomi/dialogue/status'),
+  getMessages: (limit = 50) => request.get(`/xiaomi/dialogue/messages?limit=${limit}`),
+  utterance: (text: string, source = 'web') =>
+    request.post('/xiaomi/dialogue/utterance', { text, source }),
+  setMode: (mode: string, speak = false) =>
+    request.post('/xiaomi/dialogue/mode', { mode, speak }),
+  getDialogueSettings: () => request.get('/xiaomi/dialogue/settings'),
+  updateDialogueSettings: (body: Partial<DialogueSettings>) =>
+    request.put('/xiaomi/dialogue/settings', body),
+  listPanelKeywords: () => request.get('/xiaomi/panel/keywords'),
+  createPanelKeyword: (body: {
+    keyword: string
+    actionType: string
+    payload?: Record<string, unknown>
+    enabled?: boolean
+    sortOrder?: number
+  }) => request.post('/xiaomi/panel/keywords', body),
+  updatePanelKeyword: (
+    id: number,
+    body: {
+      keyword: string
+      actionType: string
+      payload?: Record<string, unknown>
+      enabled?: boolean
+      sortOrder?: number
+    },
+  ) => request.put(`/xiaomi/panel/keywords/${id}`, body),
+  deletePanelKeyword: (id: number) => request.delete(`/xiaomi/panel/keywords/${id}`),
+  getVoiceStatus: () => request.get('/xiaomi/voice/status'),
 }

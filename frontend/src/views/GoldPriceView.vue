@@ -1,369 +1,166 @@
 <template>
-  <div class="min-h-screen bg-cyber-void-950 py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex flex-col md:flex-row md:items-center justify-between mb-10">
-        <div>
-          <span class="inline-block px-4 py-1.5 rounded-full bg-gold-100 dark:bg-gold-900/30 text-gold-600 dark:text-gold-400 text-sm font-medium mb-4">
-            实时追踪
-          </span>
-          <h1 class="text-4xl md:text-5xl font-bold text-surface-900 dark:text-white mb-2">
-            国际<span class="text-gold-500">金价</span>追踪
-          </h1>
-          <p class="text-surface-600 dark:text-surface-400">
-            最后更新: {{ lastUpdated || '--' }}
-          </p>
-        </div>
-        <div class="mt-6 md:mt-0 flex flex-wrap items-center gap-3">
-          <button
-            @click="showAlertModal = true"
-            class="btn-gold flex items-center gap-2"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-            <span>设置提醒</span>
-          </button>
-          <button 
-            @click="refreshData"
-            :disabled="refreshing"
-            class="btn-gold flex items-center gap-2"
-          >
-            <svg 
-              :class="['w-4 h-4', refreshing && 'animate-spin']" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            <span>刷新数据</span>
-          </button>
-        </div>
+  <div class="page-wrap">
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+      <div>
+        <p class="text-sm font-semibold text-brand-600 mb-1">黄金9999 · 元/克</p>
+        <h1 class="page-title">国内金价</h1>
+        <p class="page-desc">最后更新：{{ lastUpdated || '--' }} · 每天自动同步，也可手动刷新</p>
       </div>
+      <button type="button" class="btn-primary" :disabled="refreshing" @click="refreshData">
+        {{ refreshing ? '刷新中…' : '刷新数据' }}
+      </button>
+    </div>
 
-      <div class="card-cyber-glow p-6 mb-8">
-        <h2 class="text-lg font-semibold text-surface-900 dark:text-white mb-4">选择货币</h2>
-        <div class="flex flex-wrap gap-3">
-          <button
-            v-for="curr in currencies"
-            :key="curr.code"
-            @click="selectCurrency(curr.code)"
+    <div v-if="loading" class="card p-16 text-center text-ink-400">加载中…</div>
+
+    <template v-else-if="goldPrice">
+      <div class="card p-8 mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div>
+            <p class="text-sm text-ink-500 mb-2">{{ goldPrice.currency }} · 当前价</p>
+            <div class="flex items-baseline gap-2">
+              <span class="text-2xl text-ink-400">{{ goldPrice.symbol }}</span>
+              <span class="text-5xl font-bold text-ink-900 dark:text-white">{{ formatPrice(goldPrice.price) }}</span>
+            </div>
+          </div>
+          <div
             :class="[
-              'flex items-center gap-3 px-5 py-3 rounded-xl font-medium transition-all duration-200',
-              currentCurrency === curr.code
-                ? 'bg-gradient-to-r from-gold-500 to-gold-600 text-white shadow-lg shadow-gold-500/25'
-                : 'bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700'
+              'inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold',
+              goldPrice.changePercent >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
             ]"
           >
-            <span class="text-2xl">{{ curr.flag }}</span>
-            <div class="text-left">
-              <div class="font-bold">{{ curr.code }}</div>
-              <div class="text-xs opacity-75">{{ curr.name }}</div>
-            </div>
+            {{ goldPrice.changePercent >= 0 ? '↑' : '↓' }}
+            {{ goldPrice.symbol }}{{ Math.abs(goldPrice.changeAmount).toFixed(2) }}
+            ({{ goldPrice.changePercent >= 0 ? '+' : '' }}{{ goldPrice.changePercent.toFixed(2) }}%)
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-3 mt-8">
+          <div class="rounded-xl bg-brand-50 dark:bg-ink-950 p-4 text-center">
+            <p class="text-xs text-ink-400 mb-1">最高</p>
+            <p class="font-bold">{{ goldPrice.symbol }}{{ formatPrice(goldPrice.high) }}</p>
+          </div>
+          <div class="rounded-xl bg-brand-50 dark:bg-ink-950 p-4 text-center">
+            <p class="text-xs text-ink-400 mb-1">最低</p>
+            <p class="font-bold">{{ goldPrice.symbol }}{{ formatPrice(goldPrice.low) }}</p>
+          </div>
+          <div class="rounded-xl bg-brand-50 dark:bg-ink-950 p-4 text-center">
+            <p class="text-xs text-ink-400 mb-1">均价</p>
+            <p class="font-bold">{{ goldPrice.symbol }}{{ formatPrice(goldPrice.average) }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-6 mb-6">
+        <h2 class="font-semibold text-ink-900 dark:text-white mb-4">货币</h2>
+        <div class="flex flex-wrap gap-2">
+          <button
+            v-for="c in currencies"
+            :key="c.code"
+            type="button"
+            class="px-4 py-2 rounded-xl text-sm font-medium border transition-colors"
+            :class="currentCurrency === c.code
+              ? 'bg-brand-500 text-white border-brand-500'
+              : 'bg-white dark:bg-ink-900 border-ink-200 dark:border-ink-700 text-ink-600 hover:border-brand-400'"
+            @click="selectCurrency(c.code)"
+          >
+            {{ c.flag }} {{ c.code }}
           </button>
         </div>
       </div>
 
-      <div v-if="goldPrice" class="space-y-8">
-        <div class="card-cyber-glow p-8 border-cyber-yellow-500 shadow-neon-yellow">
-          <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div class="flex items-center gap-6">
-              <div class="relative">
-                <div class="absolute inset-0 bg-gold-400/30 rounded-2xl blur-xl animate-pulse-slow"></div>
-                <div class="relative w-20 h-20 bg-gradient-to-br from-gold-400 to-gold-600 rounded-2xl flex items-center justify-center shadow-lg">
-                  <span class="text-4xl">🥇</span>
-                </div>
-              </div>
-              <div>
-                <p class="text-sm text-surface-500 dark:text-surface-400 mb-1">XAU/盎司</p>
-                <p class="text-xs text-surface-400 dark:text-surface-500">实时金价</p>
-              </div>
-            </div>
-            
-            <div class="text-center md:text-right">
-              <div class="flex items-baseline justify-center md:justify-end gap-2 mb-3">
-                <span class="text-3xl text-surface-500 dark:text-surface-400">{{ goldPrice.symbol }}</span>
-                <span class="text-6xl md:text-7xl font-bold text-surface-900 dark:text-white tracking-tight">
-                  {{ formatPrice(goldPrice.price) }}
-                </span>
-              </div>
-              <div 
-                :class="[
-                  'inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold',
-                  goldPrice.changePercent >= 0 
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                    : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                ]"
-              >
-                <span class="text-lg">{{ goldPrice.changePercent >= 0 ? '↑' : '↓' }}</span>
-                <span>{{ goldPrice.symbol }}{{ Math.abs(goldPrice.changeAmount).toFixed(2) }}</span>
-                <span>({{ goldPrice.changePercent >= 0 ? '+' : '' }}{{ goldPrice.changePercent.toFixed(2) }}%)</span>
-              </div>
-            </div>
+      <div class="card p-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <h2 class="font-semibold text-ink-900 dark:text-white">走势</h2>
+          <div class="flex gap-2">
+            <button
+              v-for="p in periods"
+              :key="p.value"
+              type="button"
+              class="px-3 py-1.5 rounded-lg text-sm"
+              :class="currentPeriod === p.value ? 'bg-brand-500 text-white' : 'bg-ink-100 dark:bg-ink-800 text-ink-600'"
+              @click="selectPeriod(p.value)"
+            >
+              {{ p.label }}
+            </button>
           </div>
         </div>
-
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="card-cyber p-6 text-center border-cyber-yellow-500/30">
-            <div class="w-12 h-12 mx-auto mb-4 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span class="text-white text-xl">↑</span>
-            </div>
-            <p class="text-sm text-surface-500 dark:text-surface-400 mb-1">最高价</p>
-            <p class="text-2xl font-bold text-surface-900 dark:text-white">
-              {{ goldPrice.symbol }}{{ formatPrice(goldPrice.high) }}
-            </p>
-          </div>
-          
-          <div class="card-cyber p-6 text-center border-cyber-yellow-500/30">
-            <div class="w-12 h-12 mx-auto mb-4 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span class="text-white text-xl">↓</span>
-            </div>
-            <p class="text-sm text-surface-500 dark:text-surface-400 mb-1">最低价</p>
-            <p class="text-2xl font-bold text-surface-900 dark:text-white">
-              {{ goldPrice.symbol }}{{ formatPrice(goldPrice.low) }}
-            </p>
-          </div>
-          
-          <div class="card-cyber p-6 text-center border-cyber-yellow-500/30">
-            <div class="w-12 h-12 mx-auto mb-4 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span class="text-white text-xl">~</span>
-            </div>
-            <p class="text-sm text-surface-500 dark:text-surface-400 mb-1">平均值</p>
-            <p class="text-2xl font-bold text-surface-900 dark:text-white">
-              {{ goldPrice.symbol }}{{ formatPrice(goldPrice.average) }}
-            </p>
-          </div>
-          
-          <div class="card-cyber p-6 text-center border-cyber-yellow-500/30">
-            <div class="w-12 h-12 mx-auto mb-4 bg-gradient-to-br from-accent-400 to-accent-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span class="text-white text-xl">〰</span>
-            </div>
-            <p class="text-sm text-surface-500 dark:text-surface-400 mb-1">波动率</p>
-            <p class="text-2xl font-bold text-surface-900 dark:text-white">
-              {{ goldPrice.volatility.toFixed(2) }}%
-            </p>
-          </div>
-        </div>
-
-        <div class="card-cyber-glow p-8 border-cyber-yellow-500 shadow-neon-yellow">
-          <div class="flex flex-col md:flex-row md:items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-surface-900 dark:text-white">价格走势</h2>
-            <div class="flex gap-2 mt-4 md:mt-0">
-              <button
-                v-for="period in periods"
-                :key="period.value"
-                @click="selectPeriod(period.value)"
-                :class="[
-                  'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200',
-                  currentPeriod === period.value
-                    ? 'bg-gold-500 text-white shadow-lg shadow-gold-500/25'
-                    : 'bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700'
-                ]"
-              >
-                {{ period.label }}
-              </button>
-            </div>
-          </div>
-          
-          <div class="h-80">
-            <PriceChart 
-              v-if="priceHistory.length > 0"
-              :data="priceHistory"
-              :currency="currentCurrency"
-              :symbol="currentSymbol"
-            />
-            <div v-else class="flex items-center justify-center h-full text-surface-500 dark:text-surface-400">
-              加载中...
-            </div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="card-cyber p-6 border-cyber-yellow-500/30">
-            <div class="flex items-start gap-4">
-              <div class="w-12 h-12 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                <span class="text-2xl">ℹ️</span>
-              </div>
-              <div>
-                <h3 class="font-bold text-surface-900 dark:text-white mb-2">关于金价</h3>
-                <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
-                  黄金价格受多种因素影响，包括全球经济形势、地缘政治风险、通货膨胀预期和美元汇率等。
-                  投资有风险，入市需谨慎。
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div class="card-cyber p-6 border-cyber-yellow-500/30">
-            <div class="flex items-start gap-4">
-              <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                <span class="text-2xl">🕐</span>
-              </div>
-              <div>
-                <h3 class="font-bold text-surface-900 dark:text-white mb-2">交易时间</h3>
-                <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
-                  全球黄金市场几乎24小时交易，从悉尼开盘到纽约收盘，周一至周五持续交易。
-                  周末市场休市，价格保持不变。
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <PriceChart :data="priceHistory" :currency="currentCurrency" />
       </div>
-
-      <div v-else-if="loading" class="flex flex-col items-center justify-center py-20">
-        <div class="w-16 h-16 border-4 border-gold-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="text-surface-600 dark:text-surface-400">加载金价数据...</p>
-      </div>
-    </div>
-  
-      <PriceAlertModal
-        :is-open="showAlertModal"
-        :current-price="goldPrice?.price || 0"
-        :currency="currentCurrency"
-        :currency-symbol="currentSymbol"
-        @close="showAlertModal = false"
-      />
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { goldPriceApi, type GoldPrice, type Currency, type PricePoint } from '@/api/goldPrice'
 import PriceChart from '@/components/PriceChart.vue'
-import PriceAlertModal from '@/components/PriceAlertModal.vue'
 import { formatPrice } from '@/utils/format'
 
 const goldPrice = ref<GoldPrice | null>(null)
 const currencies = ref<Currency[]>([])
 const priceHistory = ref<PricePoint[]>([])
-const currentCurrency = ref('USD')
+const currentCurrency = ref('CNY')
 const currentPeriod = ref(30)
 const loading = ref(true)
 const refreshing = ref(false)
-const showAlertModal = ref(false)
 const lastUpdated = ref('')
 
 const periods = [
   { value: 7, label: '7天' },
   { value: 30, label: '30天' },
-  { value: 90, label: '90天' }
+  { value: 90, label: '90天' },
 ]
 
-const currentSymbol = computed(() => {
-  const curr = currencies.value.find(c => c.code === currentCurrency.value)
-  return curr?.symbol || '$'
-})
+function applyPrice(data: GoldPrice) {
+  goldPrice.value = data
+  lastUpdated.value = data.timestamp
+    ? new Date(data.timestamp).toLocaleString('zh-CN')
+    : new Date().toLocaleString('zh-CN')
+}
 
 async function fetchData() {
+  loading.value = true
   try {
-    loading.value = true
-    const [priceRes, currenciesRes, historyRes] = await Promise.all([
+    const [priceRes, curRes, histRes] = await Promise.all([
       goldPriceApi.getCurrentPrice(currentCurrency.value),
       goldPriceApi.getSupportedCurrencies(),
-      goldPriceApi.getPriceHistory(currentCurrency.value, currentPeriod.value)
+      goldPriceApi.getPriceHistory(currentCurrency.value, currentPeriod.value),
     ])
-    
-    goldPrice.value = priceRes.data.data
-    currencies.value = currenciesRes.data.data
-    priceHistory.value = historyRes.data.data
-    
-    lastUpdated.value = new Date().toLocaleString('zh-CN')
-  } catch (error) {
-    console.error('Failed to fetch gold price:', error)
+    applyPrice(priceRes.data.data)
+    currencies.value = curRes.data.data
+    priceHistory.value = histRes.data.data
+  } catch (e) {
+    console.error(e)
   } finally {
     loading.value = false
   }
 }
 
-async function selectCurrency(currency: string) {
-  currentCurrency.value = currency
+async function selectCurrency(code: string) {
+  currentCurrency.value = code
   await fetchData()
 }
 
 async function selectPeriod(days: number) {
   currentPeriod.value = days
-  try {
-    const res = await goldPriceApi.getPriceHistory(currentCurrency.value, days)
-    priceHistory.value = res.data.data
-  } catch (error) {
-    console.error('Failed to fetch history:', error)
-  }
+  const res = await goldPriceApi.getPriceHistory(currentCurrency.value, days)
+  priceHistory.value = res.data.data
 }
 
 async function refreshData() {
   refreshing.value = true
-  await fetchData()
-  refreshing.value = false
-}
-
-// Smart refresh with visibility awareness and idle callback
-// Performance optimization: Only refresh when tab is visible and user is idle
-let refreshTimer: number | null = null
-let idleCallbackId: number | null = null
-const REFRESH_INTERVAL = 60000 // 60 seconds
-const isVisible = ref(true)
-
-// Handle tab visibility changes - pause refresh when tab is hidden
-const handleVisibilityChange = () => {
-  isVisible.value = document.visibilityState === 'visible'
-  
-  if (isVisible.value) {
-    // Tab became visible - refresh immediately if data might be stale
-    scheduleRefresh()
-  } else {
-    // Tab hidden - cancel pending refreshes to save resources
-    cancelScheduledRefresh()
+  try {
+    const res = await goldPriceApi.refresh()
+    applyPrice(res.data.data)
+    currentCurrency.value = 'CNY'
+    const histRes = await goldPriceApi.getPriceHistory('CNY', currentPeriod.value)
+    priceHistory.value = histRes.data.data
+  } catch (e) {
+    console.error(e)
+  } finally {
+    refreshing.value = false
   }
 }
 
-// Schedule refresh using requestIdleCallback for better performance
-const scheduleRefresh = () => {
-  if (!isVisible.value) return
-  
-  // Clear any existing timer
-  if (refreshTimer) {
-    clearTimeout(refreshTimer)
-    refreshTimer = null
-  }
-  
-  // Use requestIdleCallback for non-urgent background updates
-  // This ensures refresh happens during idle periods, not during user interactions
-  if ('requestIdleCallback' in window) {
-    idleCallbackId = window.requestIdleCallback(() => {
-      fetchData()
-      scheduleRefresh()
-    }, { timeout: REFRESH_INTERVAL })
-  } else {
-    // Fallback to setTimeout for browsers without requestIdleCallback
-    refreshTimer = window.setTimeout(() => {
-      fetchData()
-      scheduleRefresh()
-    }, REFRESH_INTERVAL)
-  }
-}
-
-// Cancel all scheduled refreshes
-const cancelScheduledRefresh = () => {
-  if (refreshTimer) {
-    clearTimeout(refreshTimer)
-    refreshTimer = null
-  }
-  if (idleCallbackId && 'cancelIdleCallback' in window) {
-    window.cancelIdleCallback(idleCallbackId)
-    idleCallbackId = null
-  }
-}
-
-onMounted(() => {
-  fetchData()
-  // Add visibility listener for smart refresh
-  document.addEventListener('visibilitychange', handleVisibilityChange)
-  scheduleRefresh()
-})
-
-onUnmounted(() => {
-  cancelScheduledRefresh()
-  document.removeEventListener('visibilitychange', handleVisibilityChange)
-})
+onMounted(fetchData)
 </script>

@@ -11,7 +11,6 @@ export interface GoldPrice {
   low: number
   average: number
   volatility: number
-  history?: PricePoint[]
 }
 
 export interface PricePoint {
@@ -28,12 +27,10 @@ export interface Currency {
 }
 
 export const goldPriceApi = {
-  getCurrentPrice: (currency: string = 'USD') => 
+  getCurrentPrice: (currency = 'CNY') =>
     request.get(`/gold-price/current?currency=${currency}`),
-  
-  getPriceHistory: (currency: string = 'USD', days: number = 30) => 
+  getPriceHistory: (currency = 'CNY', days = 30) =>
     request.get(`/gold-price/history?currency=${currency}&days=${days}`),
-  
-  getSupportedCurrencies: () => 
-    request.get('/gold-price/currencies')
+  getSupportedCurrencies: () => request.get('/gold-price/currencies'),
+  refresh: () => request.post('/gold-price/refresh'),
 }

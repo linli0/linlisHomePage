@@ -1,98 +1,36 @@
 import request from '@/utils/request'
 
 export interface TradingStrategy {
-  id: string
+  id: number
   name: string
-  description: string
-  type: string
-  status: string
-  parameters: Record<string, any>
-  symbol: string
-  totalReturn: number
-  sharpeRatio: number
-  maxDrawdown: number
-  winRate: number
-  createdAt: string
-  updatedAt: string
+  description?: string
+  symbol?: string
+  enabled?: boolean
+  params?: Record<string, unknown>
 }
 
 export interface TradingSignal {
-  id: string
-  strategyId: string
-  strategyName: string
+  id: number
+  strategyId?: number
   symbol: string
-  signalType: string
-  price: number
-  targetPrice: number
-  stopLoss: number
-  confidence: number
-  reason: string
-  executed: boolean
-  executedAt: string | null
-  createdAt: string
-}
-
-export interface BacktestResult {
-  id: string
-  strategyId: string
-  strategyName: string
-  startDate: string
-  endDate: string
-  totalReturn: number
-  sharpeRatio: number
-  maxDrawdown: number
-  winRate: number
-  totalTrades: number
-  profitTrades: number
-  lossTrades: number
-  createdAt: string
-}
-
-export interface IndicatorValue {
-  date: string
-  value: number
-}
-
-export interface CandleData {
-  time: string
-  open: number
-  high: number
-  low: number
-  close: number
-  volume: number
+  side: string
+  price?: number
+  createdAt?: string
+  note?: string
 }
 
 export const tradingApi = {
-  getStrategies: () => 
-    request.get('/quant/strategies'),
-  
-  getStrategyById: (id: string) => 
-    request.get(`/quant/strategies/${id}`),
-  
-  createStrategy: (data: Omit<TradingStrategy, 'id' | 'createdAt' | 'updatedAt'>) => 
-    request.post('/quant/strategies', data),
-  
-  updateStrategy: (id: string, data: Partial<Omit<TradingStrategy, 'id' | 'createdAt' | 'updatedAt'>>) => 
+  getStrategies: () => request.get('/quant/strategies'),
+  getStrategyById: (id: number) => request.get(`/quant/strategies/${id}`),
+  createStrategy: (data: Record<string, unknown>) => request.post('/quant/strategies', data),
+  updateStrategy: (id: number, data: Record<string, unknown>) =>
     request.put(`/quant/strategies/${id}`, data),
-  
-  deleteStrategy: (id: string) => 
-    request.delete(`/quant/strategies/${id}`),
-  
-  getSignals: (strategyId?: string, limit?: number) => {
-    const params: Record<string, any> = {}
-    if (strategyId) params.strategyId = strategyId
-    if (limit) params.limit = limit
-    return request.get('/quant/signals', { params })
-  },
-  
-  getBacktestResults: (strategyId: string) => 
-    request.get(`/quant/backtest/${strategyId}`),
-  
-  runBacktest: (strategyId: string, params: { startDate: string; endDate: string; initialCapital: number }) => 
+  deleteStrategy: (id: number) => request.delete(`/quant/strategies/${id}`),
+  getSignals: (strategyId?: number, limit = 50) =>
+    request.get('/quant/signals', { params: { strategyId, limit } }),
+  getBacktestResults: (strategyId: number) => request.get(`/quant/backtest/${strategyId}`),
+  runBacktest: (strategyId: number, params: Record<string, unknown>) =>
     request.post(`/quant/backtest/${strategyId}`, params),
-  
-  getIndicators: (symbol: string, indicatorType: string, period: number) => {
-    const params = { symbol, indicatorType, period }
-    return request.get('/quant/indicators', { params })
-  }
+  getIndicators: (symbol: string, indicatorType: string, period: number) =>
+    request.get('/quant/indicators', { params: { symbol, indicatorType, period } }),
 }

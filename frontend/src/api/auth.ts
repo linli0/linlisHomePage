@@ -9,16 +9,16 @@ export interface AuthResponse {
   type: string
   id: number
   username: string
-  email: string
-  displayName: string
-  avatar: string
+  email?: string
+  displayName?: string
+  avatar?: string
   role: string
-  expiresIn: number
+  expiresIn?: number
 }
 
 export const authApi = {
   login: (data: LoginRequest) => request.post('/auth/login', data),
   getCurrentUser: () => request.get('/auth/me'),
-  updateProfile: (data: { displayName?: string; email?: string }) => request.put('/auth/profile', data),
-  changePassword: (data: { currentPassword: string; newPassword: string }) => request.put('/auth/password', data)
+  updateProfile: (data: Record<string, unknown>) => request.put('/auth/profile', data),
+  changePassword: (data: Record<string, unknown>) => request.put('/auth/password', data),
 }
