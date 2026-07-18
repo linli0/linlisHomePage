@@ -13,21 +13,32 @@
             最后更新: {{ lastUpdated || '--' }}
           </p>
         </div>
-        <button 
-          @click="refreshData"
-          :disabled="refreshing"
-          class="mt-6 md:mt-0 btn-gold flex items-center gap-2"
-        >
-          <svg 
-            :class="['w-4 h-4', refreshing && 'animate-spin']" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
+        <div class="mt-6 md:mt-0 flex flex-wrap items-center gap-3">
+          <button
+            @click="showAlertModal = true"
+            class="btn-gold flex items-center gap-2"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          <span>刷新数据</span>
-        </button>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            <span>设置提醒</span>
+          </button>
+          <button 
+            @click="refreshData"
+            :disabled="refreshing"
+            class="btn-gold flex items-center gap-2"
+          >
+            <svg 
+              :class="['w-4 h-4', refreshing && 'animate-spin']" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>刷新数据</span>
+          </button>
+        </div>
       </div>
 
       <div class="card-cyber-glow p-6 mb-8">
@@ -205,6 +216,14 @@
         <p class="text-surface-600 dark:text-surface-400">加载金价数据...</p>
       </div>
     </div>
+  
+      <PriceAlertModal
+        :is-open="showAlertModal"
+        :current-price="goldPrice?.price || 0"
+        :currency="currentCurrency"
+        :currency-symbol="currentSymbol"
+        @close="showAlertModal = false"
+      />
   </div>
 </template>
 
@@ -212,6 +231,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { goldPriceApi, type GoldPrice, type Currency, type PricePoint } from '@/api/goldPrice'
 import PriceChart from '@/components/PriceChart.vue'
+import PriceAlertModal from '@/components/PriceAlertModal.vue'
 import { formatPrice } from '@/utils/format'
 
 const goldPrice = ref<GoldPrice | null>(null)
@@ -221,6 +241,7 @@ const currentCurrency = ref('USD')
 const currentPeriod = ref(30)
 const loading = ref(true)
 const refreshing = ref(false)
+const showAlertModal = ref(false)
 const lastUpdated = ref('')
 
 const periods = [
@@ -276,18 +297,73 @@ async function refreshData() {
   refreshing.value = false
 }
 
-let refreshInterval: number | null = null
+// Smart refresh with visibility awareness and idle callback
+// Performance optimization: Only refresh when tab is visible and user is idle
+let refreshTimer: number | null = null
+let idleCallbackId: number | null = null
+const REFRESH_INTERVAL = 60000 // 60 seconds
+const isVisible = ref(true)
+
+// Handle tab visibility changes - pause refresh when tab is hidden
+const handleVisibilityChange = () => {
+  isVisible.value = document.visibilityState === 'visible'
+  
+  if (isVisible.value) {
+    // Tab became visible - refresh immediately if data might be stale
+    scheduleRefresh()
+  } else {
+    // Tab hidden - cancel pending refreshes to save resources
+    cancelScheduledRefresh()
+  }
+}
+
+// Schedule refresh using requestIdleCallback for better performance
+const scheduleRefresh = () => {
+  if (!isVisible.value) return
+  
+  // Clear any existing timer
+  if (refreshTimer) {
+    clearTimeout(refreshTimer)
+    refreshTimer = null
+  }
+  
+  // Use requestIdleCallback for non-urgent background updates
+  // This ensures refresh happens during idle periods, not during user interactions
+  if ('requestIdleCallback' in window) {
+    idleCallbackId = window.requestIdleCallback(() => {
+      fetchData()
+      scheduleRefresh()
+    }, { timeout: REFRESH_INTERVAL })
+  } else {
+    // Fallback to setTimeout for browsers without requestIdleCallback
+    refreshTimer = window.setTimeout(() => {
+      fetchData()
+      scheduleRefresh()
+    }, REFRESH_INTERVAL)
+  }
+}
+
+// Cancel all scheduled refreshes
+const cancelScheduledRefresh = () => {
+  if (refreshTimer) {
+    clearTimeout(refreshTimer)
+    refreshTimer = null
+  }
+  if (idleCallbackId && 'cancelIdleCallback' in window) {
+    window.cancelIdleCallback(idleCallbackId)
+    idleCallbackId = null
+  }
+}
 
 onMounted(() => {
   fetchData()
-  refreshInterval = window.setInterval(() => {
-    fetchData()
-  }, 60000)
+  // Add visibility listener for smart refresh
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+  scheduleRefresh()
 })
 
 onUnmounted(() => {
-  if (refreshInterval) {
-    clearInterval(refreshInterval)
-  }
+  cancelScheduledRefresh()
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 </script>
