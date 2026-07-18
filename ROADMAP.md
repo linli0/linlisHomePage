@@ -318,9 +318,10 @@ api/
 2. ~~编写 `doc/architecture/fastapi-overview.md`~~ ✅
 3. ~~核心 API + JWT 登录~~ ✅
 4. ~~`docker-compose.yml` 默认 api + frontend（SQLite）~~ ✅
-5. **文档与运维对齐**：根 `AGENTS.md`、`load-service` 指向 FastAPI/Vite（进行中）
-6. **阶段 6 收尾（可选）**：清理过时 `doc/` / `项目架构.md` 中的 Spring 叙述；前端 Vitest 与改版 UI 对齐
-7. **公网**：裸域 → `www` 跳转（Cloudflare）；tunnel 配置仍在本机 `.config/`（gitignore）
+5. ~~文档与运维对齐~~ ✅（`AGENTS.md` / `load-service` / compose；见分支 `chore/fastapi-docs-and-compose`）
+6. **非小爱可用性**：金价/AI/Wiki/登录错误态与 README（进行中，同分支）
+7. **阶段 6 收尾（可选）**：清理过时 `doc/` / `项目架构.md`；前端 Vitest 与改版 UI 对齐
+8. **公网**：裸域 → `www` 跳转（Cloudflare）；tunnel 配置仍在本机 `.config/`（gitignore）
 
 ---
 

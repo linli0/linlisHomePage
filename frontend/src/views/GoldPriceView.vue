@@ -11,7 +11,20 @@
       </button>
     </div>
 
+    <div
+      v-if="refreshError"
+      class="card p-4 mb-6 border border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800 text-sm text-amber-800 dark:text-amber-200"
+    >
+      {{ refreshError }}
+    </div>
+
     <div v-if="loading" class="card p-16 text-center text-ink-400">加载中…</div>
+
+    <div v-else-if="!goldPrice && loadError" class="card p-12 text-center">
+      <p class="text-ink-600 dark:text-ink-300 mb-2">暂时无法获取金价</p>
+      <p class="text-sm text-ink-400 mb-6">{{ loadError }}</p>
+      <button type="button" class="btn-primary" @click="fetchData">重试</button>
+    </div>
 
     <template v-else-if="goldPrice">
       <div class="card p-8 mb-6">
@@ -92,6 +105,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import axios from 'axios'
 import { goldPriceApi, type GoldPrice, type Currency, type PricePoint } from '@/api/goldPrice'
 import PriceChart from '@/components/PriceChart.vue'
 import { formatPrice } from '@/utils/format'
@@ -104,12 +118,23 @@ const currentPeriod = ref(30)
 const loading = ref(true)
 const refreshing = ref(false)
 const lastUpdated = ref('')
+const loadError = ref('')
+const refreshError = ref('')
 
 const periods = [
   { value: 7, label: '7天' },
   { value: 30, label: '30天' },
   { value: 90, label: '90天' },
 ]
+
+function extractError(e: unknown): string {
+  if (axios.isAxiosError(e)) {
+    const d = e.response?.data as { message?: string; detail?: string } | undefined
+    if (d?.message) return d.message
+    if (typeof d?.detail === 'string') return d.detail
+  }
+  return e instanceof Error ? e.message : '加载失败，请稍后重试'
+}
 
 function applyPrice(data: GoldPrice) {
   goldPrice.value = data
@@ -120,6 +145,8 @@ function applyPrice(data: GoldPrice) {
 
 async function fetchData() {
   loading.value = true
+  loadError.value = ''
+  refreshError.value = ''
   try {
     const [priceRes, curRes, histRes] = await Promise.all([
       goldPriceApi.getCurrentPrice(currentCurrency.value),
@@ -131,6 +158,11 @@ async function fetchData() {
     priceHistory.value = histRes.data.data
   } catch (e) {
     console.error(e)
+    if (!goldPrice.value) {
+      loadError.value = extractError(e)
+    } else {
+      refreshError.value = `刷新失败：${extractError(e)}（仍显示上次成功价格）`
+    }
   } finally {
     loading.value = false
   }
@@ -143,12 +175,18 @@ async function selectCurrency(code: string) {
 
 async function selectPeriod(days: number) {
   currentPeriod.value = days
-  const res = await goldPriceApi.getPriceHistory(currentCurrency.value, days)
-  priceHistory.value = res.data.data
+  try {
+    const res = await goldPriceApi.getPriceHistory(currentCurrency.value, days)
+    priceHistory.value = res.data.data
+  } catch (e) {
+    console.error(e)
+    refreshError.value = `走势加载失败：${extractError(e)}`
+  }
 }
 
 async function refreshData() {
   refreshing.value = true
+  refreshError.value = ''
   try {
     const res = await goldPriceApi.refresh()
     applyPrice(res.data.data)
@@ -157,6 +195,7 @@ async function refreshData() {
     priceHistory.value = histRes.data.data
   } catch (e) {
     console.error(e)
+    refreshError.value = `刷新失败：${extractError(e)}${goldPrice.value ? '（仍显示上次成功价格）' : ''}`
   } finally {
     refreshing.value = false
   }

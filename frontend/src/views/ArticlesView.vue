@@ -1,10 +1,21 @@
 <template>
   <div class="page-wrap">
     <h1 class="page-title">Wiki</h1>
-    <p class="page-desc mb-8">技术文档与知识库</p>
+    <p class="page-desc mb-8">笔记与技术文档（公开已发布内容）</p>
 
     <div v-if="loading" class="text-ink-400 py-16 text-center">加载中…</div>
-    <div v-else-if="articles.length === 0" class="card p-16 text-center text-ink-400">暂无文章</div>
+
+    <div v-else-if="loadError" class="card p-10 text-center space-y-4">
+      <p class="text-ink-600">{{ loadError }}</p>
+      <button type="button" class="btn-primary" @click="loadArticles">重试</button>
+    </div>
+
+    <div v-else-if="articles.length === 0" class="card p-12 text-center space-y-3">
+      <p class="text-ink-700 font-medium">还没有公开文章</p>
+      <p class="text-sm text-ink-500">登录管理员账号后可在后台发布；游客只能看到已发布内容。</p>
+      <router-link to="/login" class="btn-primary inline-flex">去登录</router-link>
+    </div>
+
     <div v-else class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
       <article
         v-for="a in articles"
@@ -28,16 +39,22 @@ import { formatDate } from '@/utils/format'
 
 const articles = ref<Article[]>([])
 const loading = ref(true)
+const loadError = ref('')
 
-onMounted(async () => {
+async function loadArticles() {
+  loading.value = true
+  loadError.value = ''
   try {
     const res = await articleApi.getPublishedArticles(0, 20)
     const data = res.data.data
     articles.value = Array.isArray(data) ? data : (data?.content ?? [])
   } catch (e) {
     console.error(e)
+    loadError.value = '文章列表加载失败，请检查 API 是否已启动。'
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(loadArticles)
 </script>

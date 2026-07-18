@@ -2,7 +2,8 @@
   <div class="card flex flex-col h-[min(70vh,640px)]">
     <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-ink-100 dark:border-ink-800">
       <p class="font-semibold text-ink-900 dark:text-white">AI 对话</p>
-      <select v-model="model" class="input !py-1.5 !px-3 text-sm w-auto min-w-[10rem]">
+      <select v-model="model" class="input !py-1.5 !px-3 text-sm w-auto min-w-[10rem]" :disabled="!models.length">
+        <option v-if="!models.length" value="">无可用模型</option>
         <option v-for="m in models" :key="m.name" :value="m.name">{{ m.name }}</option>
       </select>
     </div>
@@ -26,7 +27,7 @@
 
     <form class="p-4 border-t border-ink-100 dark:border-ink-800 flex gap-2" @submit.prevent="send">
       <input v-model="prompt" class="input flex-1" placeholder="输入消息…" :disabled="streaming" />
-      <button type="submit" class="btn-primary shrink-0" :disabled="streaming || !prompt.trim()">发送</button>
+      <button type="submit" class="btn-primary shrink-0" :disabled="streaming || !prompt.trim() || !model">发送</button>
     </form>
   </div>
 </template>
@@ -37,6 +38,8 @@ import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { aiApi, type AIModel } from '@/api/ai'
 import { useSettingsStore } from '@/stores/settings'
+
+const emit = defineEmits<{ 'model-change': [name: string] }>()
 
 interface Msg {
   role: 'user' | 'assistant'
@@ -84,7 +87,10 @@ async function send() {
   )
 }
 
-watch(model, (v) => settings.updateAIConfig({ defaultModel: v }))
+watch(model, (v) => {
+  settings.updateAIConfig({ defaultModel: v })
+  emit('model-change', v)
+})
 
 onMounted(async () => {
   try {
@@ -96,12 +102,15 @@ onMounted(async () => {
         model.value = models.value[0].name
         settings.updateAIConfig({ defaultModel: model.value })
       }
-    } else if (!model.value) {
-      model.value = 'qwen3.5-4b:latest'
+      emit('model-change', model.value)
+    } else {
+      model.value = ''
+      emit('model-change', '')
     }
   } catch {
-    if (!model.value) model.value = 'qwen3.5-4b:latest'
-    models.value = [{ name: model.value }]
+    models.value = []
+    model.value = ''
+    emit('model-change', '')
   }
 })
 </script>

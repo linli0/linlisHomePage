@@ -46,7 +46,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
+import axios from 'axios'
 import { toolsApi } from '@/api/tools'
 
 type TabId = 'json' | 'base64' | 'url' | 'hash' | 'timestamp' | 'qr'
@@ -131,13 +132,36 @@ function pick(res: { data: { data: unknown } }): string {
   return String(d ?? '')
 }
 
+function extractError(e: unknown): string {
+  if (axios.isAxiosError(e)) {
+    const d = e.response?.data as { message?: string; detail?: string | { msg?: string }[] } | undefined
+    if (d?.message) return d.message
+    if (typeof d?.detail === 'string') return d.detail
+    if (Array.isArray(d?.detail)) {
+      return d.detail.map((x) => (typeof x === 'object' && x?.msg ? x.msg : String(x))).join('；')
+    }
+  }
+  return e instanceof Error ? e.message : '操作失败'
+}
+
+watch(active, () => {
+  error.value = ''
+  output.value = ''
+  qrUrl.value = ''
+})
+
 async function run(fn: () => Promise<void>) {
   error.value = ''
+  output.value = ''
+  qrUrl.value = ''
   busy.value = true
   try {
+    if (!input.value.trim() && active.value !== 'timestamp') {
+      throw new Error('请输入内容')
+    }
     await fn()
   } catch (e) {
-    error.value = e instanceof Error ? e.message : '操作失败'
+    error.value = extractError(e)
   } finally {
     busy.value = false
   }
