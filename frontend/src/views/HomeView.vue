@@ -54,12 +54,24 @@
                 <span class="font-mono text-sm text-brand-300/70 ml-1">元/克</span>
               </div>
               <div class="mt-5 flex items-center justify-between gap-3 border-t border-brand-300/15 pt-4">
-                <p class="font-mono text-xs text-brand-300/70">
-                  <template v-if="goldPrice">
-                    {{ goldPrice.changePercent >= 0 ? '+' : '' }}{{ goldPrice.changePercent.toFixed(2) }}%
-                  </template>
-                  <template v-else>每日更新</template>
-                </p>
+                <div>
+                  <p class="font-mono text-xs text-brand-300/70">
+                    <template v-if="goldPrice">
+                      {{ goldPrice.changePercent >= 0 ? '+' : '' }}{{ goldPrice.changePercent.toFixed(2) }}%
+                    </template>
+                    <template v-else-if="loading">加载中…</template>
+                    <template v-else-if="goldError">{{ goldError }}</template>
+                    <template v-else>每日更新</template>
+                  </p>
+                  <button
+                    v-if="goldError && !loading"
+                    type="button"
+                    class="mt-1 font-mono text-xs text-brand-200 hover:text-brand-50 underline underline-offset-2"
+                    @click.stop.prevent="loadGold"
+                  >
+                    重试
+                  </button>
+                </div>
                 <span class="text-sm text-brand-200 group-hover:text-brand-50 transition-colors">
                   进入金价页 →
                 </span>
@@ -129,6 +141,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import axios from 'axios'
 import { goldPriceApi, type GoldPrice } from '@/api/goldPrice'
 import { articleApi, type Article } from '@/api/article'
 import { formatPrice, formatDate } from '@/utils/format'
@@ -137,6 +150,7 @@ const goldPrice = ref<GoldPrice | null>(null)
 const articles = ref<Article[]>([])
 const loading = ref(true)
 const loadingArticles = ref(true)
+const goldError = ref('')
 
 const features = [
   { to: '/gold', title: '国内金价', desc: '黄金9999 参考价，元/克，可手动刷新', hint: 'CNY' },
@@ -145,18 +159,38 @@ const features = [
   { to: '/ai', title: 'AI 对话', desc: '本地 Ollama', hint: '聊' },
 ]
 
-onMounted(async () => {
+function extractGoldError(e: unknown): string {
+  if (axios.isAxiosError(e)) {
+    const d = e.response?.data as { message?: string; detail?: string } | undefined
+    if (d?.message) return d.message
+    if (typeof d?.detail === 'string') return d.detail
+  }
+  return '金价加载失败'
+}
+
+async function loadGold() {
+  loading.value = true
+  goldError.value = ''
   try {
-    const [p, a] = await Promise.all([
-      goldPriceApi.getCurrentPrice('CNY'),
-      articleApi.getRecentArticles(),
-    ])
+    const p = await goldPriceApi.getCurrentPrice('CNY')
     goldPrice.value = p.data.data
+  } catch (e) {
+    console.error(e)
+    goldError.value = extractGoldError(e)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(async () => {
+  await loadGold()
+  loadingArticles.value = true
+  try {
+    const a = await articleApi.getRecentArticles()
     articles.value = a.data.data
   } catch (e) {
     console.error(e)
   } finally {
-    loading.value = false
     loadingArticles.value = false
   }
 })

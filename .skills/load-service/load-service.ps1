@@ -61,57 +61,89 @@ function Parse-YamlConfig {
     }
 }
 
+function Test-UrlReady([string]$Url, [int]$TimeoutSec = 3) {
+    try {
+        $null = Invoke-WebRequest -Uri $Url -TimeoutSec $TimeoutSec -UseBasicParsing -ErrorAction Stop
+        return $true
+    } catch {
+        return $false
+    }
+}
+
+function Wait-UrlReady([string]$Url, [int]$TimeoutSec, [int]$IntervalSec, [string]$Label) {
+    Write-Info "Waiting for $Label (timeout ${TimeoutSec}s)..."
+    $elapsed = 0
+    while ($elapsed -lt $TimeoutSec) {
+        if (Test-UrlReady -Url $Url) {
+            Write-Done "$Label ready (${elapsed}s)"
+            return
+        }
+        Start-Sleep -Seconds $IntervalSec
+        $elapsed += $IntervalSec
+        Write-Host "." -NoNewline
+    }
+    Write-Host ""
+    Write-Fail "$Label timeout: $Url"
+}
+
 Write-Host ""
 Write-Host "CoffeeCookie HomePage - Load Service" -ForegroundColor Yellow
+Write-Host "  FastAPI :8000 + Vite :3000 + Tunnel" -ForegroundColor Yellow
 Write-Host "========================================="
 
 Write-Step 1 "Read config"
 $configPath = Join-Path $ProjectRoot ".config\service-config.yml"
-if (-not (Test-Path $configPath)) { Write-Fail "Config not found: $configPath" }
+$examplePath = Join-Path $PSScriptRoot "service-config.example.yml"
+if (-not (Test-Path $configPath)) {
+    Write-Fail "Config not found: $configPath`nCopy example: copy `"$examplePath`" `"$configPath`""
+}
 Parse-YamlConfig -Content (Get-Content $configPath -Raw -Encoding UTF8)
 $cfg = $script:cfgData
 
-$svcPort = $cfg['service.port']
+$edgePort = if ($cfg['service.port']) { $cfg['service.port'] } else { "3000" }
 $svcDomain = $cfg['service.domain']
 $tunnelMethod = $cfg['start.tunnel.method']
-$healthUrl = $cfg['start.backend.health_check.url']
-$healthTimeout = [int]$cfg['start.backend.health_check.timeout_ms'] / 1000
-$healthInterval = [int]$cfg['start.backend.health_check.interval_ms'] / 1000
+$apiHealthUrl = if ($cfg['start.backend.health_check.url']) { $cfg['start.backend.health_check.url'] } else { "http://localhost:8000/api/health" }
+$webHealthUrl = if ($cfg['start.frontend.health_check.url']) { $cfg['start.frontend.health_check.url'] } else { "http://localhost:3000" }
+$apiHealthTimeout = if ($cfg['start.backend.health_check.timeout_ms']) { [int]$cfg['start.backend.health_check.timeout_ms'] / 1000 } else { 120 }
+$apiHealthInterval = if ($cfg['start.backend.health_check.interval_ms']) { [int]$cfg['start.backend.health_check.interval_ms'] / 1000 } else { 2 }
+$webHealthTimeout = if ($cfg['start.frontend.health_check.timeout_ms']) { [int]$cfg['start.frontend.health_check.timeout_ms'] / 1000 } else { 90 }
+$webHealthInterval = if ($cfg['start.frontend.health_check.interval_ms']) { [int]$cfg['start.frontend.health_check.interval_ms'] / 1000 } else { 2 }
 $publicUrl = $cfg['access.public']
-$localUrl = $cfg['access.local']
+$localUrl = if ($cfg['access.local']) { $cfg['access.local'] } else { "http://localhost:3000" }
 $username = $cfg['access.default_account.username']
 $password = $cfg['access.default_account.password']
 
-Write-Done "Service: $($cfg['service.name']) | Port: $svcPort | Domain: $svcDomain"
+Write-Done "Service: $($cfg['service.name']) | Edge port: $edgePort | Domain: $svcDomain"
 Write-Done "Tunnel: $tunnelMethod | Public: $publicUrl"
+if ($Dev) { Write-Info "Dev switch accepted (stack is always FastAPI + Vite)" }
 
 Write-Step 2 "Env check"
-$mavenDir = "C:\Tools\apache-maven-3.9.14"
-if ((Test-Path "$mavenDir\bin\mvn.cmd") -and ($env:Path -notlike "*$mavenDir*")) {
-    $env:Path = "$mavenDir\bin;$env:Path"
-}
-
 $envTools = $cfg['env_check.required']
 if ($envTools -is [string]) { $envTools = @($envTools) }
+if (-not $envTools) { $envTools = @('python', 'node', 'npm', 'cloudflared') }
 
 $toolChecks = @{
-    'java'       = 'java'
-    'mvn'        = 'mvn'
+    'python'     = 'python'
     'node'       = 'node'
     'npm'        = 'npm'
     'cloudflared'= 'cloudflared'
+    # legacy names in old configs — map away from Java stack
+    'java'       = $null
+    'mvn'        = $null
 }
 
 foreach ($tool in $envTools) {
+    if ($tool -eq 'java' -or $tool -eq 'mvn') {
+        Write-Info "Skipping obsolete tool check: $tool (FastAPI stack)"
+        continue
+    }
     $exe = $toolChecks[$tool]
+    if (-not $exe) { $exe = $tool }
     $found = $null -ne (Get-Command $exe -ErrorAction SilentlyContinue)
     if ($found) {
         try {
-            if ($tool -eq 'java') {
-                $ver = (java -version 2>&1 | ForEach-Object { $_.ToString() }) | Select-Object -First 1
-            } else {
-                $ver = & $exe --version 2>&1 | Select-Object -First 1
-            }
+            $ver = & $exe --version 2>&1 | Select-Object -First 1
             $verStr = ($ver -join " ").Trim()
             Write-Done "$tool -> $verStr"
         } catch {
@@ -122,79 +154,74 @@ foreach ($tool in $envTools) {
     }
 }
 
+$apiDir = Join-Path $ProjectRoot "api"
+$frontendDir = Join-Path $ProjectRoot "frontend"
+$venvPython = Join-Path $apiDir ".venv\Scripts\python.exe"
+$venvUvicorn = Join-Path $apiDir ".venv\Scripts\uvicorn.exe"
+$apiLog = Join-Path $ProjectRoot "api.log"
+$apiErr = Join-Path $ProjectRoot "api-error.log"
+$webLog = Join-Path $ProjectRoot "frontend.log"
+$webErr = Join-Path $ProjectRoot "frontend-error.log"
+
 if (-not $SkipBuild) {
-    Write-Step 3 "Build frontend"
-    Push-Location (Join-Path $ProjectRoot "frontend")
+    Write-Step 3 "Ensure dependencies"
+    if (-not (Test-Path $venvPython) -or -not (Test-Path $venvUvicorn)) {
+        Write-Info "Creating api/.venv and installing requirements..."
+        $py = Get-Command python -ErrorAction SilentlyContinue
+        if (-not $py) { $py = Get-Command py -ErrorAction SilentlyContinue }
+        if (-not $py) { Write-Fail "python not found" }
+        & $py.Source -m venv (Join-Path $apiDir ".venv")
+        & (Join-Path $apiDir ".venv\Scripts\pip.exe") install -r (Join-Path $apiDir "requirements.txt")
+        if ($LASTEXITCODE -ne 0) { Write-Fail "pip install failed" }
+    } else {
+        Write-Done "api/.venv ready"
+    }
+    Push-Location $frontendDir
     try {
         if (-not (Test-Path "node_modules")) {
             Write-Info "npm install..."
             npm install 2>&1 | ForEach-Object { Write-Host $_ }
             if ($LASTEXITCODE -ne 0) { Write-Fail "npm install failed" }
+        } else {
+            Write-Done "frontend/node_modules ready"
         }
-        Write-Info "npm run build..."
-        npm run build 2>&1 | ForEach-Object { Write-Host $_ }
-        if ($LASTEXITCODE -ne 0) { Write-Fail "npm run build failed" }
-        Write-Done "Frontend built -> frontend/dist/"
     } finally {
         Pop-Location
     }
 } else {
-    Write-Step 3 "Build frontend (skipped)"
+    Write-Step 3 "Dependencies (skipped)"
+    if (-not (Test-Path $venvUvicorn)) { Write-Fail "Missing $venvUvicorn (run without -SkipBuild once)" }
 }
 
-Write-Step 4 "Start backend (port $svcPort)"
-
-$backendWorkdir = Join-Path $ProjectRoot "backend"
-$logFile = Join-Path $ProjectRoot "backend.log"
-$errFile = Join-Path $ProjectRoot "backend-error.log"
-
-$javaProcs = Get-Process -Name "java" -ErrorAction SilentlyContinue
-$backendRunning = $false
-if ($javaProcs) {
-    try {
-        $null = Invoke-WebRequest -Uri $healthUrl -TimeoutSec 3 -ErrorAction Stop
-        $backendRunning = $true
-        Write-Done "Backend already running"
-    } catch {
-        $backendRunning = $false
-    }
+Write-Step 4 "Start FastAPI (:8000)"
+if (Test-UrlReady -Url $apiHealthUrl) {
+    Write-Done "API already running"
+} else {
+    Write-Info "Starting uvicorn..."
+    $apiCmd = "`"$venvUvicorn`" app.main:app --host 127.0.0.1 --port 8000 > `"$apiLog`" 2> `"$apiErr`""
+    Start-Process -FilePath "cmd.exe" -ArgumentList "/c $apiCmd" -WorkingDirectory $apiDir -WindowStyle Hidden
+    Wait-UrlReady -Url $apiHealthUrl -TimeoutSec ([int]$apiHealthTimeout) -IntervalSec ([int]$apiHealthInterval) -Label "API"
 }
 
-if (-not $backendRunning) {
-    Write-Info "Starting Spring Boot..."
-    Push-Location $backendWorkdir
-    Start-Process -FilePath "cmd.exe" `
-        -ArgumentList "/c mvn spring-boot:run > `"$logFile`" 2> `"$errFile`"" `
-        -WindowStyle Hidden
-    Pop-Location
-
-    Write-Info "Waiting for backend (timeout ${healthTimeout}s)..."
-    $elapsed = 0
-    while ($elapsed -lt $healthTimeout) {
-        try {
-            $null = Invoke-WebRequest -Uri $healthUrl -TimeoutSec 3 -ErrorAction Stop
-            Write-Done "Backend ready (${elapsed}s)"
-            break
-        } catch {
-            Start-Sleep -Seconds $healthInterval
-            $elapsed += $healthInterval
-            Write-Host "." -NoNewline
-        }
-    }
-    if ($elapsed -ge $healthTimeout) {
-        Write-Fail "Backend timeout, check $errFile"
-    }
+Write-Step 5 "Start Vite (:3000)"
+if (Test-UrlReady -Url $webHealthUrl) {
+    Write-Done "Vite already running"
+} else {
+    Write-Info "Starting npm run dev..."
+    $webCmd = "npm run dev > `"$webLog`" 2> `"$webErr`""
+    Start-Process -FilePath "cmd.exe" -ArgumentList "/c $webCmd" -WorkingDirectory $frontendDir -WindowStyle Hidden
+    Wait-UrlReady -Url $webHealthUrl -TimeoutSec ([int]$webHealthTimeout) -IntervalSec ([int]$webHealthInterval) -Label "Vite"
 }
 
 if (-not $SkipTunnel) {
-    Write-Step 5 "Start Cloudflare Tunnel ($tunnelMethod)"
+    Write-Step 6 "Start Cloudflare Tunnel ($tunnelMethod)"
 
     if ($tunnelMethod -eq 'existing-domain') {
         $configFile = Join-Path $ProjectRoot $cfg['start.tunnel.config_file']
         if (-not (Test-Path $configFile)) { Write-Fail "Tunnel config not found: $configFile" }
 
         Write-Info "Config: $configFile"
-        Write-Info "Public: $publicUrl (fixed domain)"
+        Write-Info "Public: $publicUrl (fixed domain → localhost:$edgePort)"
         Write-Info "Ensuring DNS route..."
         $prevEAP = $ErrorActionPreference
         $ErrorActionPreference = 'Continue'
@@ -208,10 +235,10 @@ if (-not $SkipTunnel) {
         Start-Sleep -Seconds 5
         Write-Done "Tunnel started -> $publicUrl"
     } else {
-        Write-Info "Quick Tunnel mode..."
+        Write-Info "Quick Tunnel mode (edge http://localhost:$edgePort)..."
         $tunnelLog = Join-Path $ProjectRoot "tunnel.log"
         Start-Process -FilePath "cloudflared" `
-            -ArgumentList "tunnel --url http://localhost:$svcPort" `
+            -ArgumentList "tunnel --url http://localhost:$edgePort" `
             -RedirectStandardOutput $tunnelLog `
             -WindowStyle Hidden
         Start-Sleep -Seconds 15
@@ -224,7 +251,7 @@ if (-not $SkipTunnel) {
         }
     }
 } else {
-    Write-Step 5 "Cloudflare Tunnel (skipped)"
+    Write-Step 6 "Cloudflare Tunnel (skipped)"
 }
 
 Write-Host ""
@@ -232,8 +259,8 @@ Write-Host "=========================================" -ForegroundColor Green
 Write-Host "  DEPLOY SUCCESS" -ForegroundColor Green
 Write-Host "=========================================" -ForegroundColor Green
 Write-Host ""
-Write-Host "  Backend:  $localUrl"
-Write-Host "  Frontend: built"
+Write-Host "  Frontend: $localUrl"
+Write-Host "  API:      $apiHealthUrl"
 if (-not $SkipTunnel) { Write-Host "  Tunnel:   running" }
 Write-Host ""
 Write-Host "  Public:   $publicUrl"
@@ -241,10 +268,10 @@ Write-Host ""
 Write-Host "  Login:    $username / $password"
 Write-Host ""
 Write-Host "  Logs:"
-Write-Host "    Backend:  Get-Content $logFile -Tail 50 -Wait"
-Write-Host "    Error:    Get-Content $errFile -Tail 50"
+Write-Host "    API:      Get-Content $apiLog -Tail 50 -Wait"
+Write-Host "    API err:  Get-Content $apiErr -Tail 50"
+Write-Host "    Frontend: Get-Content $webLog -Tail 50 -Wait"
 Write-Host ""
 Write-Host "  Stop:"
-Write-Host "    Backend:  Stop-Process -Name java -Force"
-Write-Host "    Tunnel:   Stop-Process -Name cloudflared -Force"
+Write-Host "    stop.bat   (or stop uvicorn / node / cloudflared processes)"
 Write-Host ""

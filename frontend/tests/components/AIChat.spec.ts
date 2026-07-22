@@ -59,14 +59,14 @@ describe('AIChat', () => {
     expect(wrapper.find('select').exists()).toBe(true)
   })
 
-  test('should show input textarea', () => {
+  test('should show message input', () => {
     const wrapper = mount(AIChat, {
       global: {
         plugins: [createPinia()]
       }
     })
     
-    expect(wrapper.find('textarea').exists()).toBe(true)
+    expect(wrapper.find('input[placeholder="输入消息…"]').exists()).toBe(true)
   })
 
   test('should show send button', () => {
@@ -81,14 +81,14 @@ describe('AIChat', () => {
     expect(sendButton).toBeDefined()
   })
 
-  test('should show status indicator', () => {
+  test('should show chat header', () => {
     const wrapper = mount(AIChat, {
       global: {
         plugins: [createPinia()]
       }
     })
     
-    expect(wrapper.html()).toContain('Ollama')
+    expect(wrapper.text()).toContain('AI 对话')
   })
 
   test('should have empty messages initially', () => {
@@ -131,10 +131,10 @@ describe('AIChat', () => {
       }
     })
     
-    wrapper.vm.selectedModel = ''
-    wrapper.vm.inputMessage = 'test'
+    wrapper.vm.model = ''
+    wrapper.vm.prompt = 'test'
     
-    expect(wrapper.vm.isLoading).toBe(false)
-    expect(wrapper.vm.selectedModel).toBe('')
+    expect(wrapper.vm.streaming).toBe(false)
+    expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBeDefined()
   })
 })

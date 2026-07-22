@@ -2,7 +2,7 @@
 date: 2026-07-19
 topic: miai-ops-handoff
 branch: feature/miAi
-status: active
+status: absorbed
 ---
 
 # Epitaph: miAi 运维与播报配置收尾
@@ -79,8 +79,8 @@ Login: admin / admin123
 ## Open follow-ups
 
 - 前端 Vitest 与改版 UI 可能仍不对齐（构建不阻塞）
-- AGENTS.md 仍偏 Spring Boot；运行时以 FastAPI `api/` 为准
+- ~~AGENTS.md 仍偏 Spring Boot~~ → 已对齐 FastAPI（chore/fastapi-docs-and-compose）
 - 裸域 → www 跳转（Cloudflare Page Rule / 改 DNS）未做
-- load-service.ps1 仍偏 Spring Boot `:8080`，与当前 Vite+FastAPI 栈不一致
-- PR #5 合并状态与后续 commit（Ollama/announce/tunnel）是否需再推一层
+- ~~load-service.ps1 仍偏 Spring Boot `:8080`~~ → 已改为 Vite+FastAPI
+- ~~PR #5 / #6~~ → 已合入 master
 - Panel/Codex/Debug 深度能力可继续打磨

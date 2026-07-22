@@ -1,0 +1,36 @@
+# Copy to .config/service-config.yml (gitignored) and adjust paths/secrets.
+service:
+  name: coffeeCookie-homepage
+  # Public edge is Vite in load-service (tunnel → :3000 → proxies /api → :8000)
+  port: 3000
+  domain: www.coffeecookie.online
+
+start:
+  backend:
+    health_check:
+      url: http://localhost:8000/api/health
+      timeout_ms: 120000
+      interval_ms: 2000
+  frontend:
+    health_check:
+      url: http://localhost:3000
+      timeout_ms: 90000
+      interval_ms: 2000
+  tunnel:
+    method: existing-domain  # or quick-tunnel
+    tunnel_name: my-tunnel
+    config_file: .config/tunnel/opencode-config.yml
+
+access:
+  local: http://localhost:3000
+  public: https://www.coffeecookie.online
+  default_account:
+    username: admin
+    password: admin123
+
+env_check:
+  required:
+    - python
+    - node
+    - npm
+    - cloudflared

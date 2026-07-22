@@ -1,4 +1,6 @@
-version: '3.8'
+# Default stack: FastAPI (SQLite) + nginx frontend. No MySQL / Spring Boot.
+# Dev (hot reload): start.bat / ./start.sh dev  → API :8000 + Vite :3000
+# Prod-like:        docker compose up -d      → API :8000 + frontend :80
 
 services:
   api:
@@ -8,11 +10,13 @@ services:
     container_name: coffee-homepage-api
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "${API_PORT:-8000}:8000"
     environment:
       - DATABASE_URL=sqlite:////app/data/homepage.db
       - JWT_SECRET=${JWT_SECRET:-bXlTdXBlclNlY3JldEtleUZvckpXVFRva2VuR2VuZXJhdGlvbjEyMzQ1Njc4OQ==}
+      - AI_DEFAULT_PROVIDER=${AI_DEFAULT_PROVIDER:-ollama}
       - METALPRICE_API_ENABLED=${METALPRICE_API_ENABLED:-false}
+      - XIAOMI_ENABLED=${XIAOMI_ENABLED:-false}
     volumes:
       - ./data:/app/data
     networks:
@@ -30,7 +34,7 @@ services:
     container_name: coffee-homepage-frontend
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "${FRONTEND_PORT:-80}:80"
     networks:
       - coffee-network
     depends_on:

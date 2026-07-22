@@ -92,7 +92,7 @@ describe('LoginView', () => {
     expect(submitButton.exists()).toBe(true)
   })
 
-  test('should have show password toggle', async () => {
+  test('should show login page copy', async () => {
     router.push('/login')
     await router.isReady()
     
@@ -102,23 +102,8 @@ describe('LoginView', () => {
       }
     })
     
-    // Find toggle button
-    const buttons = wrapper.findAll('button')
-    const toggleButton = buttons.find(b => b.element.getAttribute('type') === 'button')
-    expect(toggleButton).toBeDefined()
-  })
-
-  test('should show CoffeeCookies branding', async () => {
-    router.push('/login')
-    await router.isReady()
-    
-    const wrapper = mount(LoginView, {
-      global: {
-        plugins: [router, pinia]
-      }
-    })
-    
-    expect(wrapper.text()).toContain('CoffeeCookies')
+    expect(wrapper.text()).toContain('登录')
+    expect(wrapper.text()).toContain('私人站点')
   })
 
   test('should bind password to input', async () => {
@@ -137,7 +122,7 @@ describe('LoginView', () => {
     expect(wrapper.vm.password).toBe('test123')
   })
 
-  test('should toggle password visibility', async () => {
+  test('should disable submit when password is empty', async () => {
     router.push('/login')
     await router.isReady()
     
@@ -147,14 +132,7 @@ describe('LoginView', () => {
       }
     })
     
-    expect(wrapper.vm.showPassword).toBe(false)
-    
-    // Find toggle button and click
-    const buttons = wrapper.findAll('button[type="button"]')
-    const toggleButton = buttons[0]
-    await toggleButton.trigger('click')
-    
-    expect(wrapper.vm.showPassword).toBe(true)
+    expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBeDefined()
   })
 
   test('should show error message when login fails', async () => {
@@ -167,12 +145,10 @@ describe('LoginView', () => {
       }
     })
     
-    // Set error through store
-    const authStore = wrapper.vm.authStore
-    authStore.error = 'Invalid password'
+    wrapper.vm.error = '密码错误'
     
     await wrapper.vm.$nextTick()
     
-    expect(wrapper.html()).toContain('Invalid password')
+    expect(wrapper.text()).toContain('密码错误')
   })
 })

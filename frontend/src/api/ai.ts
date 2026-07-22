@@ -9,6 +9,16 @@ export interface AIModel {
   modifiedAt?: string
 }
 
+export interface AIStatus {
+  status: 'connected' | 'disconnected' | string
+  message: string
+  url?: string | null
+  hint?: string | null
+  localOnline: boolean
+  remoteOnline: boolean
+  remoteEnabled: boolean
+}
+
 export interface AIChatRequest {
   model: string
   prompt: string

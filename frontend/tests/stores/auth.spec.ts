@@ -50,7 +50,7 @@ describe('Auth Store', () => {
   test('should have correct initial loading state', () => {
     const store = useAuthStore()
     expect(store.loading).toBe(false)
-    expect(store.error).toBeNull()
+    expect(store.error).toBe('')
   })
 
   test('should not be admin by default', () => {
