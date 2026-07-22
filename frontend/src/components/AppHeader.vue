@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <nav
     :class="[
       'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
@@ -42,7 +42,7 @@
               navSolid ? 'bg-brand-500 text-brand-50 hover:bg-brand-600' : 'bg-brand-50 text-brand-900 hover:bg-brand-100'
             ]"
           >
-            鐧诲綍
+            登录
           </router-link>
 
           <div v-else class="relative" ref="userMenuRef">
@@ -63,9 +63,9 @@
               v-if="showUserMenu"
               class="absolute right-0 mt-2 w-48 rounded-xl bg-white dark:bg-ink-800 shadow-lg border border-ink-100 dark:border-ink-700 py-1"
             >
-              <router-link to="/profile" class="block px-4 py-2.5 text-sm text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-700" @click="showUserMenu = false">涓汉涓績</router-link>
-              <router-link to="/settings" class="block px-4 py-2.5 text-sm text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-700" @click="showUserMenu = false">璁剧疆</router-link>
-              <button type="button" class="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50" @click="handleLogout">閫€鍑虹櫥褰?/button>
+              <router-link to="/profile" class="block px-4 py-2.5 text-sm text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-700" @click="showUserMenu = false">个人中心</router-link>
+              <router-link to="/settings" class="block px-4 py-2.5 text-sm text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-700" @click="showUserMenu = false">设置</router-link>
+              <button type="button" class="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50" @click="handleLogout">退出登录</button>
             </div>
           </div>
 
@@ -75,7 +75,7 @@
             :class="navSolid ? 'text-ink-700 hover:bg-ink-100' : 'text-brand-50 hover:bg-white/10'"
             @click="showMobile = !showMobile"
           >
-            <span class="text-xl">{{ showMobile ? '鉁? : '鈽? }}</span>
+            <span class="text-xl">{{ showMobile ? 'X' : '=' }}</span>
           </button>
         </div>
       </div>
@@ -119,14 +119,14 @@ const initial = computed(() =>
 )
 
 const menuItems = [
-  { name: '棣栭〉', path: '/' },
-  { name: '閲戜环', path: '/gold' },
+  { name: '首页', path: '/' },
+  { name: '金价', path: '/gold' },
   { name: 'Wiki', path: '/articles', match: '/article' },
-  { name: '宸ュ叿绠?, path: '/tools' },
-  { name: '鎺ㄧ壒', path: '/tweets' },
-  { name: '灏忕埍', path: '/xiaomi' },
-  { name: '宸ヤ綔鍙?', path: '/workpanel' },
-  { name: '閲忓寲', path: '/quant' },
+  { name: '工具箱', path: '/tools' },
+  { name: '推特', path: '/tweets' },
+  { name: '小爱', path: '/xiaomi' },
+  { name: '工作台', path: '/workpanel' },
+  { name: '量化', path: '/quant' },
 ]
 
 function isActive(item: { path: string; match?: string }) {
@@ -177,7 +177,3 @@ onUnmounted(() => {
   document.removeEventListener('click', onClickOutside)
 })
 </script>
-
-
-
-
