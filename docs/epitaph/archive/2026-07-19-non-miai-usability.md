@@ -2,12 +2,12 @@
 date: 2026-07-19
 topic: non-miai-usability
 branch: chore/fastapi-docs-and-compose
-status: active
+status: absorbed
 ---
 
 # Epitaph: 非小爱主站可用性通宵切片
 
-用户睡眠中授权自主推进；**未改小爱/对话/播报**。PR：https://github.com/linli0/linlisHomePage/pull/7
+用户睡眠中授权自主推进；**未改小爱/对话/播报**。已合入：PR #7 + #8 → `master`（`2224916`）。
 
 ## Built this session
 
@@ -44,11 +44,10 @@ status: active
 ## How to run / verify
 
 ```text
-git checkout chore/fastapi-docs-and-compose
-# 或看 PR #7
+git checkout master   # tip: 2224916 (#7 + #8)
 
 cd api && .venv\Scripts\python.exe -m pytest tests -q
-cd frontend && npm run test:run   # 期望 80 passed；忽略 exit 1 噪音若断言全绿
+cd frontend && npm run test:run   # 期望断言全绿；忽略 exit 1 噪音若断言全绿
 
 start.bat
 # 或 load-service: .\.skills\load-service\load-service.ps1 -SkipTunnel
@@ -65,7 +64,7 @@ Login: admin / admin123
 
 ## Open follow-ups
 
-- 合并 PR #7
+- ~~合并 PR #7~~ → 已合入；漏推 API 错误处理见 PR #8（亦已合入 `master`）
 - **Wiki 写作 UI**：公开列表只读；API 已有 create/update，缺管理员 Markdown 编辑页（Home「去写第一篇」无入口）
 - **金价历史可信度**：`gold_price.py` 历史不足时 `random.uniform` 造点 + 写死汇率；应停造假或标「示意」，主路径锁定 AU9999 元/克
 - 设置页推特关键词仍是 localStorage 死配置，与 `TweetsView`/后端采集未打通（要么接线要么删设置项）
