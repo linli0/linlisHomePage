@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi } from '@/api/auth'
+import { extractApiError } from '@/utils/apiError'
 
 export interface AuthUser {
   id: number
@@ -39,7 +40,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
       return true
     } catch (e: unknown) {
-      error.value = e instanceof Error ? e.message : '登录失败'
+      error.value = extractApiError(e, '密码错误或登录失败')
       return false
     } finally {
       loading.value = false
